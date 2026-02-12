@@ -396,16 +396,34 @@ function validarVentaYRegistrar(data){
 
       if(!sheetV) return {status:"error",mensaje:"No hay hojas de VENTAS/VARIAS disponibles."};
 
-      if (existeEnVentas && ventaPreviaMover) {
-        const shDestinoVieja = _getSheet(VARIAS_SHARDS[0]);
-        const nuevaFilaVieja = shDestinoVieja.getLastRow() + 1;
-        const datosLimpios = ventaPreviaMover.slice(1);
-        
-        _withRetry(()=> shDestinoVieja.getRange(nuevaFilaVieja, 2, 1, datosLimpios.length).setValues([datosLimpios]));
-        _withRetry(()=> hojaOrigenPrevia.deleteRow(filaOrigenPrevia));
-        copiarFormatoUltimaFila(shDestinoVieja.getName()); 
-        _inyectarFormulas(shDestinoVieja, nuevaFilaVieja, ventaPreviaMover[4] || 0);
-      }
+      // CÓDIGO CORREGIDO (SEGURO)
+if (existeEnVentas && ventaPreviaMover) {
+  const shDestinoVieja = _getSheet(VARIAS_SHARDS[0]);
+  const nuevaFilaVieja = shDestinoVieja.getLastRow() + 1;
+  const datosLimpios = ventaPreviaMover.slice(1);
+  
+  // 1. COPIAR (ESCRITURA SEGURA)
+  // Escribimos los datos en la nueva hoja 'Varias'
+  _withRetry(()=> shDestinoVieja.getRange(nuevaFilaVieja, 2, 1, datosLimpios.length).setValues([datosLimpios]));
+  
+  // 2. FORZAR GUARDADO (EL CANDADO)
+  // Esto asegura que los datos existan en el destino SÍ O SÍ antes de continuar.
+  SpreadsheetApp.flush(); 
+
+  // 3. INYECTAR FÓRMULAS EN DESTINO
+  copiarFormatoUltimaFila(shDestinoVieja.getName());
+  _inyectarFormulas(shDestinoVieja, nuevaFilaVieja, ventaPreviaMover[4] || 0);
+
+  // 4. BORRAR ORIGEN (INTENTO SEGURO)
+  // Intentamos borrar la fila vieja. Si esto falla por error de red o bloqueo, 
+  // NO detenemos la venta. Dejamos el "zombie" ahí para que 'Limpieza.gs' lo borre en la noche.
+  try {
+     hojaOrigenPrevia.deleteRow(filaOrigenPrevia);
+  } catch (e) {
+     console.warn("⚠️ No se pudo borrar la fila original (movimiento). Se deja para el Robot de Limpieza. Error: " + e.message);
+     // Opcional: Podrías marcar la celda con color rojo o texto si quisieras, pero no es necesario.
+  }
+}
 
       if(m0 > 0){
         const estadoNota = data.esPendiente ? "PENDIENTE" : "";
