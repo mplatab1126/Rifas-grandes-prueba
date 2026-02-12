@@ -21,7 +21,6 @@ const ASESOR_CREDENTIALS = {
   "web_secure_key": "Página Web"
 };
 
-// --- UTILIDADES ---
 function _toNumber(txt){ const s=String(txt??"").trim(); if(s==="") return null; const n=Number(s); return isNaN(n)?null:n; }
 function _normRef(s){ return String(s||"").trim().toLowerCase(); }
 function _normAlnum(s){ return String(s||"").toLowerCase().replace(/[^a-z0-9]/g,""); }
@@ -51,7 +50,6 @@ function _fechaDispToISO(s){
   return `${y}-${mo}-${d}`;
 }
 
-// CORRECCION 1: Función para formatear fechas de forma segura y evitar errores de JSON
 function _safeDateStr(val) {
   if (val instanceof Date && !isNaN(val)) {
     return Utilities.formatDate(val, Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm");
@@ -396,32 +394,22 @@ function validarVentaYRegistrar(data){
 
       if(!sheetV) return {status:"error",mensaje:"No hay hojas de VENTAS/VARIAS disponibles."};
 
-      // CÓDIGO CORREGIDO (SEGURO)
 if (existeEnVentas && ventaPreviaMover) {
   const shDestinoVieja = _getSheet(VARIAS_SHARDS[0]);
   const nuevaFilaVieja = shDestinoVieja.getLastRow() + 1;
   const datosLimpios = ventaPreviaMover.slice(1);
   
-  // 1. COPIAR (ESCRITURA SEGURA)
-  // Escribimos los datos en la nueva hoja 'Varias'
   _withRetry(()=> shDestinoVieja.getRange(nuevaFilaVieja, 2, 1, datosLimpios.length).setValues([datosLimpios]));
   
-  // 2. FORZAR GUARDADO (EL CANDADO)
-  // Esto asegura que los datos existan en el destino SÍ O SÍ antes de continuar.
   SpreadsheetApp.flush(); 
 
-  // 3. INYECTAR FÓRMULAS EN DESTINO
   copiarFormatoUltimaFila(shDestinoVieja.getName());
   _inyectarFormulas(shDestinoVieja, nuevaFilaVieja, ventaPreviaMover[4] || 0);
 
-  // 4. BORRAR ORIGEN (INTENTO SEGURO)
-  // Intentamos borrar la fila vieja. Si esto falla por error de red o bloqueo, 
-  // NO detenemos la venta. Dejamos el "zombie" ahí para que 'Limpieza.gs' lo borre en la noche.
   try {
      hojaOrigenPrevia.deleteRow(filaOrigenPrevia);
   } catch (e) {
      console.warn("⚠️ No se pudo borrar la fila original (movimiento). Se deja para el Robot de Limpieza. Error: " + e.message);
-     // Opcional: Podrías marcar la celda con color rojo o texto si quisieras, pero no es necesario.
   }
 }
 
@@ -598,7 +586,6 @@ function validarAbonoYRegistrar(data){
   }
 }
 
-// CORRECCION 2: Función blindada para leer ventas aunque falten columnas
 function _findVentaRow(numero){
   const n = _toNumber(numero);
   if(n===null) return {found:false};
@@ -607,9 +594,7 @@ function _findVentaRow(numero){
     const last = sh.getLastRow(); 
     if(last < 2) continue;
     
-    // Leemos solo las columnas que existen realmente
     const maxCols = sh.getLastColumn();
-    // Necesitamos hasta la 14, pero si hay menos, leemos solo 'maxCols'
     const colsToRead = Math.max(1, Math.min(14, maxCols)); 
     
     if (colsToRead < 2) continue;
@@ -618,7 +603,6 @@ function _findVentaRow(numero){
     
     for (let i=0; i<data.length; i++){
       const rowVal = data[i];
-      // Rellenamos con vacíos en memoria si la fila es corta
       while(rowVal.length < 14) rowVal.push("");
 
       if (_toNumber(rowVal[1]) === n){ 
@@ -635,7 +619,7 @@ function _findVentaRow(numero){
             totalAbonos: Number(rowVal[7])||0, 
             restante: Number(rowVal[8])||0,
             asesor: String(rowVal[9]||""),
-            fecha: _safeDateStr(rowVal[10]), // Usamos la nueva función segura
+            fecha: _safeDateStr(rowVal[10]),
             metodo: String(rowVal[12]||""),
             ref: String(rowVal[13]||""),
             urlBoleta: String(rowVal[11]||"").trim() || `${BASE_URL}?numero=${("0000"+rowVal[1]).slice(-4)}`
@@ -647,7 +631,6 @@ function _findVentaRow(numero){
   return {found:false};
 }
 
-// CORRECCION 3: Función blindada para leer abonos aunque falten columnas
 function _listAbonos(numero){
   const n=_toNumber(numero);
   const out=[];
@@ -669,7 +652,7 @@ function _listAbonos(numero){
           row: i+2,
           numero: n,
           valor: Number(rowVal[1])||0,
-          fechaHora: _safeDateStr(rowVal[2]), // Usamos la nueva función segura
+          fechaHora: _safeDateStr(rowVal[2]),
           referencia: String(rowVal[3]||""),
           metodo: String(rowVal[4]||""),
           nota: String(rowVal[5]||""),
@@ -702,10 +685,8 @@ function consultarClienteYAbonos(arg){
     const venta=_findVentaRow(numero);
     const abonos=_listAbonos(numero).map(a=>{
       let fecha="", hora="";
-      const v=a.fechaHora; // Ahora esto vendrá como string seguro si es desde _listAbonos
-      // Si por alguna razón sigue siendo Date (legacy), lo manejamos
+      const v=a.fechaHora; 
       if (v instanceof Date && !isNaN(v)){
-         // _listAbonos ya lo convierte, pero por si acaso
       }
       return { sheet:a.sheet, row:a.row, numero:a.numero, valor:a.valor, referencia:a.referencia, metodo:a.metodo, fechaHora: a.fechaHora };
     });
@@ -1001,7 +982,6 @@ function _inyectarFormulas(sheet, row, valorRespaldo=0){
 }
 
 function _getVentaData(num){
-  // Reutilizamos la versión blindada para consistencia
   const res = _findVentaRow(num);
   if(res.found) return { found:true, ...res.data, sheetName: res.sheet, row: res.row };
   return { found:false, row:-1, total:0, restante:TICKET_PRICE, sheetName:"" };
@@ -1192,37 +1172,30 @@ function _reorganizarClientePostLiberacion(telefono, ns) {
   }
 }
 
-// CORRECCION 4: Asegurar que doGet cargue el Index.html
 function doGet(e) {
   return HtmlService.createHtmlOutputFromFile("Index")
     .setTitle("APARMENT Unificado")
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
-// CORRECCION 5: Función blindada para la búsqueda inteligente con TRY/CATCH
 function procesarBusquedaInteligente(query) {
   try {
     const q = String(query || "").trim();
     
-    // 1. LIMPIEZA Y ANÁLISIS DEL INPUT
     const esNumeroPuro = /^\d+$/.test(q);
     const longitud = q.length;
     
-    // CASO A: BOLETA (Exactamente 4 dígitos numéricos)
     if (esNumeroPuro && longitud === 4) {
       return manejarBusquedaBoleta(q);
     }
     
-    // CASO B: TELÉFONO (Entre 7 y 15 dígitos numéricos)
     if (esNumeroPuro && longitud >= 7 && longitud <= 15) {
       return manejarBusquedaTelefono(q);
     }
     
-    // CASO C: REFERENCIA (Alfanumérico o longitud extraña)
     return manejarBusquedaReferencia(q);
 
   } catch (e) {
-    // ESTO ES LO IMPORTANTE: Devolver el error en lugar de bloquearse
     return { tipo: "ERROR_SERVIDOR", mensaje: String(e.message || e) };
   }
 }
