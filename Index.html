@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>APARMENT Unificado</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --ink:#244a3e; --ink-2:#3c6b5d; --muted:#7ea094; --bg:#f6fbf9; --card:#ffffff;
+      --ring:#dfe9e5; --ring-strong:#cfe3dc; --pill:#edf7f2; --accent:#3cb579; --accent-2:#1e8f5c;
+      --danger:#e74c3c; --danger-bg:#fbe9e8; --shadow:0 10px 30px rgba(0,0,0,.06);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0; background:radial-gradient(1100px 700px at 8% -10%,rgba(60,181,121,.10),transparent 40%), var(--bg);
+      font-family:Poppins,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--ink); padding-bottom: 80px;}
+    
+    /* LAYOUT CENTRADO */
+    .shell {
+        max-width: 550px;
+        margin: 20px auto; 
+        padding: 0 18px;
+        display: none; 
+        opacity: 0;
+        transition: opacity 0.5s ease;
+    }
+    .shell.visible { display: block; opacity: 1; }
+    
+    /* --- BARRA DE BÚSQUEDA --- */
+    .top-search-bar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--ring);
+      padding: 12px 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+      margin-bottom: 20px;
+      transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+      transform: translateY(0);
+    }
+
+    .top-search-bar.hero-mode {
+      position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%);
+      width: 90%; max-width: 600px;
+      background: transparent; border-bottom: none; box-shadow: none;
+      padding: 0; z-index: 1000;
+    }
+
+    .search-container { 
+      max-width: 550px; margin: 0 auto; display: flex; gap: 10px; 
+      transition: all 0.3s ease;
+    }
+
+    .main-input {
+      width: 100%; border: 2px solid var(--ring); border-radius: 14px;
+      padding: 12px 20px; font-size: 1rem; outline: none;
+      transition: all 0.3s ease; background: #fff; color: var(--ink); font-weight: 600;
+    }
+    .main-input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(60,181,121,0.1); }
+    
+    .hero-mode .main-input {
+      padding: 22px 30px; font-size: 1.1rem; border-radius: 50px;
+      box-shadow: 0 20px 40px rgba(60,181,121,0.15); border-color: transparent; text-align: center;
+    }
+
+    .search-btn {
+      background: var(--ink); color: #fff; border: none; border-radius: 14px;
+      padding: 0 20px; font-weight: 700; cursor: pointer; font-size: 1.2rem;
+      transition: all 0.3s ease;
+    }
+    .hero-mode .search-btn { display: none; }
+
+    .hero-welcome-text {
+      text-align: center; margin-bottom: 30px; opacity: 0; visibility: hidden;
+      transform: translateY(20px); transition: all 0.4s ease;
+      position: absolute; top: -150px; left: 0; right: 0;
+    }
+    .hero-mode .hero-welcome-text {
+      opacity: 1; visibility: visible; transform: translateY(0); position: relative; top: auto;
+    }
+
+    .user-info-bar {
+      text-align: center; margin-top: 8px; font-size: 0.85rem; transition: all 0.5s ease;
+    }
+    .hero-mode .user-info-bar {
+      position: fixed; top: 20px; right: 20px; margin: 0;
+      background: rgba(255,255,255,0.8); padding: 5px 15px; border-radius: 20px;
+    }
+
+    /* TARJETAS */
+    .section-card {
+      background: #fff; border: 1px solid var(--ring); border-radius: 24px;
+      box-shadow: var(--shadow); padding: 28px 32px; margin-bottom: 24px;
+    }
+    .section-title {
+      font-size: 1.1rem; font-weight: 800; color: var(--ink);
+      text-transform: uppercase; letter-spacing: 0.5px;
+      margin: 0 0 20px 0; padding-bottom: 12px;
+      border-bottom: 2px solid var(--ring);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    /* ESTILOS INFO CLIENTE */
+    .info-panels { display: grid; gap: 20px; margin-top: 10px; }
+    .panel { background: rgba(60,181,121,.06); border: 1px solid #cfe3dc; border-radius: 22px; padding: 20px 24px; position: relative; }
+    .panel-highlight { background: #fff; border: 2px solid var(--accent); box-shadow: 0 10px 30px rgba(60,181,121,.15); text-align: center; display: flex; flex-direction: column; justify-content: center; }
+    .dl { margin: 0; padding: 0; list-style: none; } 
+    .dl li { margin: 8px 0; font-weight: 600; color: #2d5b4f; display: flex; justify-content: space-between; border-bottom: 1px dashed #cfe3dc; padding-bottom: 4px; font-size: 0.95rem; }
+    .dl li b { color: var(--ink-2); font-weight: 700; }
+    .price-big { font-size: 2.5rem; font-weight: 800; line-height: 1; color: var(--ink); margin: 4px 0; }
+    .price-label { font-size: 0.9rem; font-weight: 700; color: #7ea094; text-transform: uppercase; letter-spacing: 1px; }
+    .rest-badge { font-size: 1rem; font-weight: 700; color: #e0433e; background: #fbe9e8; display: inline-block; margin: 8px auto 0; padding: 4px 16px; border-radius: 20px; }
+    
+    /* CAMPOS VERTICALES */
+    .vertical-form { display: flex; flex-direction: column; gap: 16px; }
+    label { display: block; font-weight: 700; color: var(--ink-2); margin: 0 0 8px; font-size: 0.9rem; }
+    .field { display: flex; align-items: center; gap: 10px; background: #fcfdfd; border: 1px solid var(--ring); border-radius: 12px; padding: 12px 14px; transition: border-color .2s; }
+    .field:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(60,181,121,0.1); }
+    .pill { flex: 1; border: 0; outline: 0; font-size: 16px; background: transparent; color: var(--ink); width: 100%; }
+    
+    .num-wrap { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .num-pill { background: var(--pill); border: 1px solid var(--ring-strong); border-radius: 14px; padding: 8px 12px; display: flex; gap: 10px; align-items: center; width: fit-content; }
+    .num-pill input { width: 60px; border: 0; outline: 0; background: transparent; font-size: 18px; font-weight: 700; color: var(--accent-2); text-align: center; }
+    .chip-del { border: none; background: var(--danger-bg); color: #d64536; font-weight: 700; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; }
+    .btn-add { border: 2px dashed var(--accent); background: rgba(60,181,121,0.05); color: var(--accent-2); border-radius: 12px; padding: 8px 16px; font-weight: 700; cursor: pointer; transition: all .2s; }
+
+    /* BOTONES */
+    .cta { display: block; width: 100%; border: none; border-radius: 12px; padding: 14px; font-weight: 700; font-size: 1rem; background: linear-gradient(180deg, var(--accent), var(--accent-2)); color: #fff; box-shadow: 0 10px 20px rgba(60,181,121,.25); cursor: pointer; text-align: center; margin-top: 10px; }
+    .cta:active { transform: scale(0.98); }
+    .cta-danger { background: linear-gradient(135deg, #ff7675, #d63031); color: #fff; border: none; border-radius: 50px; padding: 10px 24px; font-weight: 700; width: 100%; margin-top: 16px; cursor: pointer; }
+
+    /* LOGIN & MODAL */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(36, 74, 62, 0.4); backdrop-filter: blur(3px); z-index: 2000; display: none; align-items: center; justify-content: center; }
+    .modal-card { background: #fff; width: 90%; max-width: 400px; border-radius: 26px; padding: 32px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+    #loginOverlay { background: #f6fbf9; z-index: 10000; display: flex; } 
+    .hint { margin-top: 12px; text-align: center; font-weight: 600; color: #3c6b5d; font-size: 0.95rem; }
+    .hint.err { color: #e74c3c; }
+    
+    /* SWITCH DE MODO */
+    .mode-switch { display: flex; background: #fff; border-radius: 16px; padding: 6px; margin-bottom: 24px; border: 1px solid var(--ring); box-shadow: var(--shadow); }
+    .mode-btn { flex: 1; border: none; background: transparent; padding: 12px; border-radius: 12px; font-weight: 700; color: var(--muted); cursor: pointer; transition: all 0.2s; font-size: 0.95rem; }
+    .mode-btn.active { background: var(--pill); color: var(--accent-2); box-shadow: 0 2px 8px rgba(60,181,121,0.1); border: 1px solid var(--ring-strong); }
+    .mode-btn:hover:not(.active) { background: #fcfdfd; }
+
+    /* OCR & TIME */
+    .time-box{display:flex; align-items:center; gap:10px}
+    .time-field{flex:1; display:flex; align-items:center; gap:6px; background:#fcfdfd; border:1px solid var(--ring); border-radius:12px; padding:10px 12px;}
+    .time-field input{width:100%; text-align:center; border:0; outline:0; background:transparent; font-weight:700;}
+    .ampm{border:1px solid var(--ring-strong); background:var(--pill); color:#2f5a4f; font-weight:800; border-radius:8px; padding:4px 8px; cursor:pointer;}
+    .ocr-drop{border:2px dashed #cfe3dc; background:#fbfdfc; border-radius:16px; padding:20px; text-align:center; font-weight:700; color:var(--ink-2); transition: all .2s; cursor:pointer; margin-bottom: 10px;}
+    .ocr-drop:hover{border-color:var(--accent); background:#f2faf5;}
+
+    .view-section { display: none; animation: fadeIn 0.3s ease; }
+    .view-section.active { display: block; }
+    @keyframes fadeIn{from{opacity:0} to{opacity:1}}
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div id="loginOverlay" class="modal-overlay">
+    <div class="modal-card">
+      <h1>🔐 Acceso</h1>
+      <p style="color:#7ea094;">Ingresa tu clave de asesor</p>
+      <div class="field" style="margin-bottom:20px;">
+        <input id="loginPwd" type="password" class="pill" placeholder="Contraseña..." style="text-align:center">
+      </div>
+      <button id="btnLogin" class="cta">Ingresar</button>
+      <div id="loginMsg" class="hint"></div>
+    </div>
+  </div>
+
+  <!-- BARRA DE BÚSQUEDA -->
+  <div class="top-search-bar hero-mode" id="topBar" style="display:none">
+    <div class="hero-welcome-text">
+        <div style="font-size: 4rem; margin-bottom: 10px;">👋</div>
+        <h1 style="color:var(--ink); margin:0; font-size: 2rem;">Sistema Unificado</h1>
+        <p style="color:var(--muted); margin: 8px 0 0 0;">Busca boleta, teléfono o pega datos</p>
+    </div>
+    <div class="search-container">
+      <input type="text" id="smartInput" class="main-input" placeholder="Escribe para buscar o pegar..." autocomplete="off">
+      <button id="btnSearch" class="search-btn">🔍</button>
+    </div>
+    <div class="user-info-bar">
+      <span id="asesorDisplay" style="font-weight:700; color:var(--accent-2); margin-right:10px;">Hola, Asesor</span>
+      <u id="btnLogout" style="cursor:pointer; color:#7ea094;">Salir</u>
+    </div>
+    <div id="searchFeedback" class="hint" style="margin: 5px 0 0 0; font-size:0.8rem; min-height: 20px;"></div>
+  </div>
+
+  <!-- CONTENEDOR APP -->
+  <div class="shell" id="appShell">
+
+    <!-- VISTA VENTA (Nueva Venta) -->
+    <div id="view-venta" class="view-section">
+      <div class="section-card">
+        <div class="section-title"><span>🎟️ Boletas</span><button id="btnAddNum" class="btn-add">+ Agregar</button></div>
+        <div id="numList" class="num-wrap"></div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-title">👤 Datos del Cliente</div>
+        <div class="vertical-form">
+          <div><label>Nombre</label><div class="field"><input id="v_nombre" class="pill" type="text"></div></div>
+          <div><label>Apellido</label><div class="field"><input id="v_apellido" class="pill" type="text"></div></div>
+          <div><label>Teléfono</label><div class="field"><input id="v_telefono" class="pill" type="tel"></div></div>
+          <div><label>Ciudad</label><div class="field"><input id="v_ciudad" class="pill" type="text"></div></div>
+          <div><label>NS Usuario</label><div class="field"><span style="font-size:1.2rem; opacity:0.7;">🆔</span><input id="v_ns_usuario" class="pill" type="text"></div></div>
+        </div>
+      </div>
+
+      <!-- SWITCH TIPO VENTA (POR DEFECTO: SEPARAR) -->
+      <div class="mode-switch">
+        <button id="btnModeAbono" class="mode-btn" onclick="setMode('abono')">💰 Con Abono</button>
+        <button id="btnModeSeparar" class="mode-btn active" onclick="setMode('separar')">🎟️ Solo Separar ($0)</button>
+      </div>
+
+      <!-- CONTENEDOR DE PAGO (INICIA OCULTO EN SEPARAR) -->
+      <div id="paymentSections" style="display: none;">
+        <div class="section-card">
+          <div class="section-title">🔍 Buscar Pago</div>
+          <div class="vertical-form">
+            <div>
+              <label>Por Comprobante (OCR)</label>
+              <div id="ocrDrop" class="ocr-drop" tabindex="0"><div id="ocrStatus" class="ocr-note">pega aquí tu screenshot</div></div>
+              <button id="btnBuscarRef" class="cta" style="margin:0;">Buscar Ref</button>
+            </div>
+            <div style="margin-top:10px; border-top:1px dashed #eee; padding-top:10px;">
+              <label>O buscar por Fecha</label>
+              <div class="time-box">
+                <div style="flex:1"><div class="field"><input id="t_fecha" class="pill" type="date"></div></div>
+                <div class="time-field"><input id="t_hh" type="number" min="1" max="12" placeholder="hh"><span>:</span><input id="t_mm" type="number" min="0" max="59" placeholder="mm"><div id="t_ampm" class="ampm">AM</div></div>
+              </div>
+              <button id="btnBuscarFecha" class="cta" style="margin-top:10px;">Buscar por Fecha</button>
+            </div>
+          </div>
+          <div id="feedbackTransfer" class="hint"></div>
+          <div id="listaTransfer" style="display:grid; gap:12px; margin-top:16px"></div>
+          <button id="btnCambiarTransfer" class="cta-danger" style="display:none;">Cambiar transferencia</button>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">💰 Detalle del Pago</div>
+          <div class="vertical-form">
+            <div><label>Valor a Abonar</label><div class="field"><input id="v_primerAbono" class="pill" type="number" min="0" value="0"></div></div>
+            <div><label>Método de Pago</label><div class="field"><select id="v_metodoPago" class="pill"><option value="">Selecciona...</option><option>Nequi</option><option>Bancolombia</option><option>Daviplata</option><option>Efectivo</option><option>Separado</option></select></div></div>
+            <div><label>Referencia Pago</label><div style="display:flex; gap:10px;"><div class="field" style="flex:1"><input id="v_referenciaAbono" class="pill" type="text"></div><button id="btnForzarPendiente" type="button" class="cta" style="margin:0; width:auto; padding:0 15px; background:linear-gradient(135deg, #e67e22, #d35400);">⏳</button></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTÓN REGISTRAR -->
+      <div class="section-card" style="border-color:var(--accent);">
+          <div><label>Ref. Venta (Origen)</label><div class="field"><input id="v_referencia" list="l_ref" class="pill"><datalist id="l_ref"><option value="Facebook"><option value="WhatsApp"></datalist></div></div>
+          <button id="btnRegistrarVenta" class="cta" style="margin-top:25px; height:50px; font-size:1.1rem; background: #7ea094;">CONFIRMAR SEPARADO ($0)</button>
+          <div id="feedbackVenta" class="hint"></div>
+          <input id="v_contrasena" type="hidden">
+      </div>
+    </div>
+
+    <!-- VISTA CLIENTE (Abono a Boleta Existente) -->
+    <div id="view-cliente" class="view-section">
+      <div class="section-card" style="border-top: 5px solid var(--ink);">
+        <div class="section-title">👤 Cliente Encontrado</div>
+        <div id="cliente-info-render"></div>
+        <select id="boletaSelector" class="pill" style="margin-top:10px; font-weight:bold; background:#e8f5e9; border-color:#3cb579;"></select>
+      </div>
+
+      <!-- SECCIÓN NUEVA: HISTORIAL DE ABONOS -->
+      <div class="section-card">
+        <div class="section-title">📜 Historial de Pagos</div>
+        <div id="historial-abonos-render">
+            <p style="text-align:center; color:#7ea094;">Selecciona una boleta para ver sus abonos.</p>
+        </div>
+      </div>
+
+      <div class="section-card">
+         <div class="section-title">🔍 Buscar Pago (Transferencia)</div>
+         <div class="vertical-form">
+            <div>
+              <label>Por Comprobante (OCR)</label>
+              <div id="ocrDropAbono" class="ocr-drop" tabindex="0"><div id="ocrStatusAbono" class="ocr-note">pega aquí tu screenshot</div></div>
+            </div>
+            
+            <div style="margin-top:10px; border-top:1px dashed #eee; padding-top:10px;">
+              <label>O buscar por Fecha</label>
+              <div class="time-box">
+                <div style="flex:1"><div class="field"><input id="t_fecha_abono" class="pill" type="date"></div></div>
+                <div class="time-field">
+                    <input id="t_hh_abono" type="number" min="1" max="12" placeholder="hh">
+                    <span>:</span>
+                    <input id="t_mm_abono" type="number" min="0" max="59" placeholder="mm">
+                    <div id="t_ampm_abono" class="ampm" onclick="this.textContent = this.textContent==='AM'?'PM':'AM'">AM</div>
+                </div>
+              </div>
+              <button id="btnBuscarFechaAbono" class="cta" style="margin-top:10px;">Buscar por Fecha</button>
+            </div>
+
+         </div>
+         <div id="feedbackTransferAbono" class="hint"></div>
+      </div>
+
+      <div class="section-card">
+          <div class="section-title">💰 Nuevo Abono</div>
+          <div class="vertical-form">
+             <div><label>Valor</label><div class="field"><input type="number" id="a_monto" class="pill" placeholder="0"></div></div>
+             
+             <div><label>Referencia</label>
+               <div style="display:flex; gap:10px;">
+                 <div class="field" style="flex:1"><input type="text" id="a_ref" class="pill"></div>
+                 <button id="btnForzarPendienteAbono" type="button" class="cta" style="margin:0; width:auto; padding:0 15px; background:linear-gradient(135deg, #e67e22, #d35400);">⏳</button>
+               </div>
+             </div>
+
+             <div><label>Método</label><div class="field"><select id="a_metodo" class="pill"><option>Nequi</option><option>Bancolombia</option><option>Efectivo</option></select></div></div>
+          </div>
+          <!-- ID AGREGADO AQUÍ PARA QUE FUNCIONE EL SCRIPT -->
+          <button id="btnRegistrarAbono" class="cta" onclick="registrarAbono()" style="margin-top:20px;">REGISTRAR ABONO</button>
+      </div>
+    </div>
+
+    <!-- VISTA REFERENCIA -->
+    <div id="view-referencia" class="view-section">
+      <div class="section-card" style="border-top: 5px solid #8b5cf6;">
+        <div class="section-title">🔍 Auditoría</div>
+        <div id="ref-detail-render" style="line-height:1.8;"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="modalResult" class="modal-overlay">
+    <div class="modal-card">
+      <span id="mIcon" style="font-size: 3.5rem; display: block; margin-bottom: 10px;">🎉</span>
+      <h3 id="mTitle" style="color:var(--ink); margin:0 0 10px 0;">Título</h3>
+      <p id="mMsg" style="color:#5a7a70; margin-bottom:20px;">Mensaje</p>
+      <button id="mBtn" class="cta" style="width: auto; padding: 10px 30px; margin: 0 auto; border-radius: 50px;">Aceptar</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script>
+    const $ = id => document.getElementById(id);
+    const feedback = $('searchFeedback');
+    const topBar = $('topBar');
+    const appShell = $('appShell');
+
+    function activateAppMode() { topBar.classList.remove('hero-mode'); appShell.classList.add('visible'); }
+    function activateHeroMode() { topBar.classList.add('hero-mode'); appShell.classList.remove('visible'); $('smartInput').value = ''; $('smartInput').focus(); setMode('separar'); }
+
+    let modoVenta = 'separar'; 
+    function setMode(mode) {
+      modoVenta = mode;
+      const btnAbono = $('btnModeAbono');
+      const btnSeparar = $('btnModeSeparar');
+      const paySection = $('paymentSections');
+      const btnReg = $('btnRegistrarVenta');
+      if (mode === 'separar') {
+        btnSeparar.classList.add('active'); btnAbono.classList.remove('active');
+        paySection.style.display = 'none';
+        btnReg.textContent = 'CONFIRMAR SEPARADO ($0)'; btnReg.style.background = '#7ea094'; 
+      } else {
+        btnAbono.classList.add('active'); btnSeparar.classList.remove('active');
+        paySection.style.display = 'block'; 
+        btnReg.textContent = 'REGISTRAR VENTA'; btnReg.style.background = ''; 
+      }
+    }
+
+    const numList = $('numList');
+    function makeNumPill(value=''){
+      const wrap = document.createElement('div'); wrap.className='num-pill';
+      const inp = document.createElement('input'); inp.type='text'; inp.maxLength=4; inp.value=value;
+      const del = document.createElement('button'); del.className='chip-del'; del.textContent='✕';
+      del.onclick = ()=>{ wrap.remove(); if(!numList.children.length) addDefaultPill(); };
+      wrap.append(inp, del); return wrap;
+    }
+    function addDefaultPill(){ numList.appendChild(makeNumPill()); }
+    $('btnAddNum').onclick = ()=> numList.appendChild(makeNumPill());
+
+    const STORAGE_KEY = 'asesor_pwd';
+    function initLogin(){ const s=localStorage.getItem(STORAGE_KEY); if(s) verifyLogin(s,true); }
+    $('btnLogin').onclick = ()=> verifyLogin($('loginPwd').value);
+    $('btnLogout').onclick = ()=> { localStorage.removeItem(STORAGE_KEY); location.reload(); };
+    
+    // --- FUNCIÓN DE LOGIN BLINDADA ---
+    function verifyLogin(pwd, auto=false){
+      if(!pwd) {
+          if(!auto) alert("Por favor ingresa la contraseña."); 
+          return;
+      }
+      
+      if(!auto) {
+          $('btnLogin').textContent = '...';
+          $('btnLogin').disabled = true;
+      }
+
+      google.script.run
+        .withSuccessHandler(res=>{
+           if(!auto) {
+               $('btnLogin').textContent = 'Ingresar';
+               $('btnLogin').disabled = false;
+           }
+           if(res.valido){
+              localStorage.setItem(STORAGE_KEY, pwd); 
+              $('loginOverlay').style.display='none';
+              topBar.style.display='block'; 
+              $('asesorDisplay').textContent = res.nombre; 
+              $('v_contrasena').value = pwd; 
+              $('smartInput').focus();
+           } else {
+              if(!auto) $('loginMsg').textContent = 'Clave incorrecta';
+           }
+        })
+        .withFailureHandler(err => {
+            if(!auto) {
+                $('btnLogin').textContent = 'Ingresar';
+                $('btnLogin').disabled = false;
+                $('loginMsg').textContent = 'Error de conexión';
+                console.error(err);
+            }
+        })
+        .verificarCredencialesAsesor(pwd);
+    }
+
+    const smartInput = $('smartInput');
+    smartInput.addEventListener('paste', (e) => {
+        const pasteData = (e.clipboardData || window.clipboardData).getData('text');
+        const lines = pasteData.split(/\r?\n/).map(l => l.trim()).filter(l => l);
+        if (lines.length >= 3) {
+            e.preventDefault();
+            activateAppMode(); switchView('view-venta');
+            if(lines.length>0) $('v_nombre').value = lines[0];
+            if(lines.length>1) $('v_apellido').value = lines[1];
+            if(lines.length>2) $('v_ciudad').value = lines[2];
+            if(lines.length>3) {
+                const nums = lines[3].split(',').map(n=>n.replace(/\D+/g,'')).filter(n=>n);
+                numList.innerHTML=''; nums.forEach(n=>numList.appendChild(makeNumPill(n))); if(!nums.length) addDefaultPill();
+            }
+            if(lines.length>4) $('v_telefono').value = lines[4];
+            if(lines.length>5) $('v_ns_usuario').value = lines[5];
+            showModal('✨ Pegado Mágico', 'Datos distribuidos correctamente.'); smartInput.value = '';
+        }
+    });
+    smartInput.onkeydown = (e)=>{ if(e.key==='Enter') runSearch(); };
+    $('btnSearch').onclick = runSearch;
+
+    function runSearch(){
+      const q = smartInput.value.trim();
+      if(!q) return;
+      feedback.textContent = "Buscando...";
+      
+      google.script.run
+        .withSuccessHandler(res=>{
+           feedback.textContent = "";
+           if(res.tipo === 'ERROR_SERVIDOR'){
+              showModal('Error del Servidor', res.mensaje);
+              return;
+           }
+           
+           if(res.tipo !== 'NO_EXISTE' && res.tipo !== 'REFERENCIA_NO_EXISTE') activateAppMode();
+           
+           if(res.tipo==='BOLETA_DISPONIBLE'){
+              switchView('view-venta'); numList.innerHTML=''; numList.appendChild(makeNumPill(res.data.numero)); $('v_nombre').focus();
+           } else if(res.tipo==='BOLETA_OCUPADA'){
+              switchView('view-cliente'); renderClienteInfo([res.data.infoVenta]);
+           } else if(res.tipo==='CLIENTE_ENCONTRADO'){
+              switchView('view-cliente'); renderClienteInfo(res.lista);
+           } else if(res.tipo==='REFERENCIA_ENCONTRADA'){
+              switchView('view-referencia'); renderReferenciaInfo(res);
+           } else { 
+               $('mTitle').textContent = 'No encontrado'; $('mMsg').textContent = res.mensaje || 'Intenta de nuevo'; $('modalResult').style.display='flex';
+           }
+        })
+        .withFailureHandler(err => {
+            feedback.textContent = "";
+            showModal('Error Crítico', 'El servidor no respondió. Causa probable: ' + err.message);
+        })
+        .procesarBusquedaInteligente(q);
+    }
+
+    function switchView(id){ document.querySelectorAll('.view-section').forEach(el=>el.classList.remove('active')); $(id).classList.add('active'); }
+
+    async function preprocessBlobToCanvas(blob){
+      return new Promise((resolve)=>{
+        const img = new Image(); img.onload = ()=>{
+          const w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+          const scale = Math.min(1.5, 1200 / Math.max(w,h));
+          const W = Math.round(w*scale), H = Math.round(h*scale);
+          const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+          const ctx = cv.getContext('2d'); ctx.drawImage(img, 0, 0, W, H); resolve(cv);
+        }; img.onerror = ()=> resolve(null); img.src = URL.createObjectURL(blob);
+      });
+    }
+    function extractRefFromText(txt){ return (txt.toUpperCase().match(/[A-Z0-9]{6,24}/g) || [])[0] || ''; }
+
+    $('ocrDrop').addEventListener('paste', async (e)=>{ handleOCR(e, 'ocrStatus', 'v_referenciaAbono'); });
+    $('ocrDropAbono').addEventListener('paste', async (e)=>{ handleOCR(e, 'ocrStatusAbono', 'a_ref'); });
+
+    async function handleOCR(e, statusId, inputId) {
+        const items = e.clipboardData?.items || [];
+        for(const it of items){ if(it.type?.startsWith('image/')){ 
+            $(statusId).textContent = 'Leyendo...';
+            const f = it.getAsFile(); const pre = await preprocessBlobToCanvas(f);
+            const res = await Tesseract.recognize(pre || f, 'spa+eng');
+            const ref = extractRefFromText(res.data.text);
+            if(ref) { $(statusId).textContent = ref; $(inputId).value = ref; } else { $(statusId).textContent = 'No se detectó ref'; }
+        }}
+    }
+
+    $('btnBuscarRef').onclick = ()=>{ alert('Función pendiente de conectar a API.'); };
+    
+    // --- LÓGICA DE BÚSQUEDA DE TRANSFERENCIA POR FECHA (NUEVO) ---
+    function buscarTransferenciasUI(fechaId, hhId, mmId, ampmId, feedbackId, targetInputId) {
+        const fecha = $(fechaId).value;
+        const hh = $(hhId).value;
+        const mm = $(mmId).value;
+        const ampm = $(ampmId).textContent;
+        const feedback = $(feedbackId);
+
+        if(!fecha || !hh || !mm) {
+            feedback.innerHTML = "<span class='hint err'>Completa la fecha y hora.</span>";
+            return;
+        }
+
+        const btn = event.target;
+        const originalTxt = btn.textContent;
+        btn.textContent = "Buscando...";
+        btn.disabled = true;
+        feedback.innerHTML = "";
+
+        const payload = {
+            fechaISO: fecha,
+            hora12: `${hh}:${mm} ${ampm}`
+        };
+
+        google.script.run
+            .withSuccessHandler(res => {
+                btn.textContent = originalTxt;
+                btn.disabled = false;
+                if(res.status === 'ok') {
+                    if(res.lista.length === 0) {
+                        feedback.innerHTML = "<span class='hint err'>No se encontraron transferencias exactas.</span>";
+                    } else {
+                        // Render results
+                        let html = '<div style="display:grid; gap:8px; margin-top:10px;">';
+                        res.lista.forEach(t => {
+                            const montoFmt = new Intl.NumberFormat('es-CO').format(t.monto);
+                            // Escapar comillas para el onclick
+                            const refSafe = t.referencia.replace(/'/g, "\\'");
+                            
+                            html += `
+                                <div onclick="document.getElementById('${targetInputId}').value = '${refSafe}'; document.getElementById('${feedbackId}').innerHTML = '<span class=ok>Referencia seleccionada: ${refSafe}</span>'" 
+                                     style="border:1px solid #dfe9e5; padding:10px; border-radius:10px; cursor:pointer; background:#fff; text-align:left; transition:background 0.2s;"
+                                     onmouseover="this.style.background='#f0f9f4'" onmouseout="this.style.background='#fff'">
+                                    <div style="font-weight:bold; color:#244a3e;">${t.plataforma} - $${montoFmt}</div>
+                                    <div style="font-size:0.8rem; color:#7ea094;">Ref: ${t.referencia} | ${t.status || 'Libre'}</div>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                        feedback.innerHTML = html;
+                    }
+                } else {
+                    feedback.innerHTML = `<span class='hint err'>Error: ${res.mensaje}</span>`;
+                }
+            })
+            .withFailureHandler(e => {
+                btn.textContent = originalTxt;
+                btn.disabled = false;
+                feedback.innerHTML = "<span class='hint err'>Error de conexión.</span>";
+            })
+            .buscarTransferenciasExactas(payload);
+    }
+
+    // Connect buttons - Se comprueba que existan antes de asignar
+    if($('btnBuscarFechaAbono')) $('btnBuscarFechaAbono').onclick = () => {
+        buscarTransferenciasUI('t_fecha_abono', 't_hh_abono', 't_mm_abono', 't_ampm_abono', 'feedbackTransferAbono', 'a_ref');
+    };
+    
+    if($('btnBuscarFecha')) $('btnBuscarFecha').onclick = () => {
+        buscarTransferenciasUI('t_fecha', 't_hh', 't_mm', 't_ampm', 'feedbackTransfer', 'v_referenciaAbono');
+    };
+    // -----------------------------------------------------------
+
+    let esVentaPendiente = false;
+    let esAbonoPendiente = false;
+    $('btnForzarPendiente').onclick = ()=>{ 
+        if(!$('v_referenciaAbono').value) return alert('Pon referencia'); 
+        esVentaPendiente=true; $('feedbackTransfer').textContent='Modo Pendiente Activo'; 
+    };
+    $('btnForzarPendienteAbono').onclick = ()=>{ 
+        if(!$('a_ref').value) return alert('Pon referencia'); 
+        esAbonoPendiente=true; $('feedbackTransferAbono').textContent='Modo Pendiente Activo'; 
+    };
+
+    $('btnRegistrarVenta').onclick = ()=>{
+       const nums = Array.from(numList.querySelectorAll('input')).map(i=>i.value).filter(v=>v.length===4);
+       if(!nums.length) return alert('Falta boleta válida');
+       $('btnRegistrarVenta').textContent='Procesando...'; $('btnRegistrarVenta').disabled=true;
+       
+       let totalMoney=0, ref='', metodo='';
+       if (modoVenta === 'separar') { totalMoney=0; ref='0'; metodo='Separado'; } 
+       else { totalMoney=Number($('v_primerAbono').value)||0; ref=$('v_referenciaAbono').value; metodo=$('v_metodoPago').value; }
+
+       const perNum = Math.floor(totalMoney/nums.length);
+       const baseData = {
+           nombre:$('v_nombre').value, apellido:$('v_apellido').value, ciudad:$('v_ciudad').value, 
+           telefono:$('v_telefono').value, nsUsuario:$('v_ns_usuario').value, primerAbono:perNum, 
+           referenciaAbono: ref, metodoPago: metodo, 
+           referencia:$('v_referencia').value||'0', contrasena:localStorage.getItem(STORAGE_KEY), esPendiente:esVentaPendiente
+       };
+       let ok=0, fails=0, idx=0;
+       function loop(){
+          if(idx>=nums.length){
+              $('btnRegistrarVenta').textContent='REGISTRAR VENTA'; $('btnRegistrarVenta').disabled=false;
+              showModal('Resumen', `Registradas: ${ok} / Errores: ${fails}`);
+              if(fails===0){ 
+                 $('v_nombre').value=''; $('v_apellido').value=''; $('v_telefono').value=''; 
+                 $('v_ciudad').value=''; $('v_primerAbono').value=0; $('v_referenciaAbono').value='';
+                 numList.innerHTML=''; addDefaultPill(); activateHeroMode();
+              }
+              return;
+          }
+          const payload = {...baseData, numeroBoleta:nums[idx++]};
+          google.script.run.withSuccessHandler(r=>{ if(r.status==='ok') ok++; else fails++; loop(); }).validarVentaYRegistrar(payload);
+       }
+       loop();
+    };
+
+    // --- REGISTRO ABONO CORREGIDO ---
+    function registrarAbono() {
+        // Tomar referencia segura al botón (si se llama desde onclick)
+        const btn = document.getElementById('btnRegistrarAbono') || { textContent: '', disabled: false };
+        
+        const boleta = $('boletaSelector').value;
+        const monto = $('a_monto').value;
+        const ref = $('a_ref').value;
+        const metodo = $('a_metodo').value;
+        
+        if(!boleta) return alert("Selecciona una boleta.");
+        if(Number(monto) <= 0) return alert("El monto debe ser mayor a 0.");
+        if(!ref && metodo !== 'Efectivo') return alert("Falta la referencia.");
+
+        const textoOriginal = btn.textContent || 'REGISTRAR ABONO';
+        if(btn.style) { // Si es un elemento real
+             btn.textContent = 'Procesando...';
+             btn.disabled = true;
+        }
+
+        const payload = {
+            numeroBoleta: boleta,
+            valorAbono: monto,
+            metodoPago: metodo,
+            referencia: ref || 'efectivo',
+            contrasena: localStorage.getItem(STORAGE_KEY),
+            esPendiente: esAbonoPendiente
+        };
+
+        google.script.run
+            .withSuccessHandler(res => {
+                if(btn.style) {
+                    btn.textContent = textoOriginal;
+                    btn.disabled = false;
+                }
+                if(res.status === 'ok'){
+                    showModal('Éxito', 'Abono registrado correctamente.');
+                    $('a_monto').value = ''; $('a_ref').value = '';
+                    // Recargar datos para ver actualización
+                    runSearch(); 
+                } else {
+                    showModal('Error', res.mensaje);
+                }
+            })
+            .withFailureHandler(err => {
+                if(btn.style) {
+                    btn.disabled = false;
+                    btn.textContent = textoOriginal;
+                }
+                showModal('Error de Conexión', err.message);
+            })
+            .validarAbonoYRegistrar(payload);
+    };
+
+    // --- RENDERIZADOR CON EDICIÓN DE CLIENTE ---
+    function renderClienteInfo(lista){
+       const c = lista[0];
+       let totalAbonadoGlobal = 0; let totalRestanteGlobal = 0; let boletasStr = [];
+       
+       // Llenar selector de boletas
+       const select = $('boletaSelector');
+       select.innerHTML = ''; 
+       
+       lista.forEach(b => { 
+           const restante = Number(b.restante) || 0;
+           totalAbonadoGlobal += (Number(b.totalAbonos) || 0);
+           totalRestanteGlobal += restante;
+           boletasStr.push(b.numero);
+           
+           const opt = document.createElement('option');
+           opt.value = b.numero;
+           opt.text = `Boleta ${b.numero} (Resta: $${new Intl.NumberFormat('es-CO').format(restante)})`;
+           select.appendChild(opt);
+       });
+
+       // Listener para cargar historial al cambiar boleta
+       select.addEventListener('change', () => {
+           cargarHistorialAbonos(select.value);
+       });
+
+       // Cargar historial inicial para la primera boleta
+       if(lista.length > 0) {
+           cargarHistorialAbonos(lista[0].numero);
+       }
+
+       const fmt = (n) => new Intl.NumberFormat('es-CO').format(n);
+
+       // HTML Generado con Inputs Editables
+       const html = `
+        <div class="info-panels">
+          <div class="panel">
+            <ul class="dl">
+              <li><b>Boletas:</b> <span>${boletasStr.join(', ')}</span></li>
+              <li><b>Teléfono:</b> <span>${c.telefono}</span></li>
+            </ul>
+            
+            <div style="margin-top:15px; padding-top:10px; border-top:1px dashed #cfe3dc;">
+                <label style="font-size:0.85rem; font-weight:700; color:#244a3e;">Nombre</label>
+                <input id="c_nombre" type="text" class="pill" style="background:#fff; border:1px solid #dfe9e5; padding:6px 10px; width:100%; margin-bottom:8px;" value="${c.nombre}">
+                
+                <label style="font-size:0.85rem; font-weight:700; color:#244a3e;">Apellido</label>
+                <input id="c_apellido" type="text" class="pill" style="background:#fff; border:1px solid #dfe9e5; padding:6px 10px; width:100%; margin-bottom:8px;" value="${c.apellido}">
+                
+                <label style="font-size:0.85rem; font-weight:700; color:#244a3e;">Ciudad</label>
+                <input id="c_ciudad" type="text" class="pill" style="background:#fff; border:1px solid #dfe9e5; padding:6px 10px; width:100%; margin-bottom:8px;" value="${c.ciudad}">
+                
+                <button id="btnGuardarDatos" class="cta" style="width:100%; padding:10px; font-size:0.9rem; background:var(--ink); margin-top:5px;">💾 Guardar Cambios</button>
+            </div>
+
+          </div>
+          <div class="panel panel-highlight">
+            <div class="price-label">Total abonado:</div>
+            <div class="price-big">$ ${fmt(totalAbonadoGlobal)}</div>
+            <div class="rest-badge">Restante: $ ${fmt(totalRestanteGlobal)}</div>
+          </div>
+        </div>
+        <button id="btnCopiar" class="cta" style="margin-top:16px;">Copiar boleta digital</button>
+       `;
+       
+       $('cliente-info-render').innerHTML = html;
+       
+       // --- LOGICA DEL BOTÓN GUARDAR ---
+       $('btnGuardarDatos').addEventListener('click', () => {
+           const btn = $('btnGuardarDatos');
+           const txtOriginal = btn.textContent;
+           btn.disabled = true; btn.textContent = 'Guardando...';
+           
+           const payload = {
+               numero: $('boletaSelector').value, // Se actualiza la boleta seleccionada
+               nombre: $('c_nombre').value,
+               apellido: $('c_apellido').value,
+               ciudad: $('c_ciudad').value,
+               contrasena: localStorage.getItem(STORAGE_KEY)
+           };
+           
+           google.script.run
+             .withSuccessHandler(res => {
+                 btn.disabled = false; btn.textContent = txtOriginal;
+                 if(res.status==='ok'){ 
+                     showModal('✅ Datos Actualizados','La información del cliente ha sido modificada correctamente.'); 
+                 } else { 
+                     showModal('⚠️ Error', res.mensaje); 
+                 }
+             })
+             .withFailureHandler(e => {
+                 btn.disabled = false; btn.textContent = txtOriginal;
+                 showModal('❌ Error de conexión', e.message);
+             })
+             .actualizarDatosCliente(payload);
+       });
+
+       // Lógica Copiar
+       $('btnCopiar').addEventListener('click', async () => {
+           const links = lista.map(b => `${b.urlBoleta || 'https://.../'+b.numero}`).join('\n');
+           try { await navigator.clipboard.writeText(links); alert('Links copiados'); } 
+           catch(e){ alert('Error copiando'); }
+       });
+    }
+
+    // --- NUEVAS FUNCIONES PARA HISTORIAL DE ABONOS ---
+    function cargarHistorialAbonos(numero) {
+        const div = $('historial-abonos-render');
+        div.innerHTML = '<p style="text-align:center; color:var(--accent);">Cargando historial...</p>';
+        
+        google.script.run
+            .withSuccessHandler(res => {
+                if(res.status === 'ok') {
+                    renderTablaAbonos(res.lista);
+                } else {
+                    div.innerHTML = `<p style="text-align:center; color:var(--danger);">${res.mensaje}</p>`;
+                }
+            })
+            .withFailureHandler(e => {
+                div.innerHTML = '<p style="text-align:center; color:var(--danger);">Error cargando historial.</p>';
+            })
+            .listarAbonosDeNumero(numero); 
+    }
+
+    function renderTablaAbonos(lista) {
+        const div = $('historial-abonos-render');
+        if(!lista || lista.length === 0) {
+            div.innerHTML = '<p style="text-align:center; color:#7ea094;">No hay abonos registrados para esta boleta.</p>';
+            return;
+        }
+
+        let html = `
+        <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+            <thead>
+                <tr style="border-bottom:2px solid var(--ring);">
+                    <th style="text-align:left; padding:8px;">Fecha</th>
+                    <th style="text-align:left; padding:8px;">Valor</th>
+                    <th style="text-align:left; padding:8px;">Ref</th>
+                    <th style="text-align:right; padding:8px;">Acción</th>
+                </tr>
+            </thead>
+            <tbody>`;
+        
+        lista.forEach(a => {
+            const valFmt = new Intl.NumberFormat('es-CO', {style:'currency', currency:'COP', minimumFractionDigits:0}).format(a.valor);
+            
+            html += `
+                <tr style="border-bottom:1px solid var(--ring);">
+                    <td style="padding:8px;">${a.fecha}<br><span style="font-size:0.75rem; color:gray;">${a.hora}</span></td>
+                    <td style="padding:8px; font-weight:700; color:var(--ink-2);">${valFmt}</td>
+                    <td style="padding:8px;">${a.referencia || '-'}</td>
+                    <td style="padding:8px; text-align:right;">
+                        <button class="chip-del" style="width:auto; height:auto; padding:4px 10px; border-radius:8px; display:inline-block;" 
+                            onclick="confirmarEliminarAbono(${a.row}, '${a.sheet}', '${a.numero}', this)">
+                            🗑️
+                        </button>
+                    </td>
+                </tr>`;
+        });
+        
+        html += `</tbody></table></div>`;
+        div.innerHTML = html;
+    }
+
+    function confirmarEliminarAbono(row, sheet, numero, btn) {
+        if(!confirm("¿Estás seguro de eliminar este abono? Si está vinculado a una transferencia, esta se liberará.")) return;
+        
+        btn.textContent = '...';
+        btn.disabled = true;
+        
+        const payload = {
+            row: row,
+            sheet: sheet,
+            numero: numero,
+            contrasena: localStorage.getItem(STORAGE_KEY)
+        };
+        
+        google.script.run
+            .withSuccessHandler(res => {
+                if(res.status === 'ok') {
+                    showModal('✅ Eliminado', 'Abono eliminado y transferencia liberada (si aplicaba).');
+                    // Actualizar todo
+                    runSearch(); 
+                } else {
+                    showModal('❌ Error', res.mensaje);
+                    btn.textContent = '🗑️';
+                    btn.disabled = false;
+                }
+            })
+            .withFailureHandler(e => {
+                showModal('❌ Error', e.message);
+                btn.textContent = '🗑️';
+                btn.disabled = false;
+            })
+            .eliminarAbonoPorFila(payload);
+    }
+
+    function renderReferenciaInfo(res){
+       const d = res.data;
+       $('ref-detail-render').innerHTML = `<div style="text-align:center; padding:10px; background:${d.estadoLogico==='Ocupado'?'#fee2e2':'#dcfce7'}; border-radius:12px; margin-bottom:15px;">
+         <h2 style="margin:0;">${d.referencia}</h2><span>${d.estadoLogico}</span></div>
+         <p><b>Monto:</b> $${d.monto}</p><p><b>Banco:</b> ${d.plataforma}</p><p><b>Detalle:</b> ${d.detalle||'--'}</p>`;
+    }
+    function showModal(title,msg){ $('mTitle').textContent=title; $('mMsg').textContent=msg; $('modalResult').style.display='flex'; }
+    $('mBtn').onclick = ()=> $('modalResult').style.display='none';
+    $('t_ampm').onclick = function(){ this.textContent = this.textContent==='AM'?'PM':'AM'; };
+
+    // --- SIMULACIÓN DEL ENTORNO (MOCK) ---
+    // Esta parte permite que la app funcione en la vista previa sin estar en Google Apps Script
+    // Importante: Eliminar o comentar esta sección al llevar el código a producción (Google Apps Script)
+    if(typeof google === 'undefined'){
+       const mockRunner = {
+           _success: null,
+           _failure: null,
+           withSuccessHandler: function(cb) { this._success = cb; return this; },
+           withFailureHandler: function(cb) { this._failure = cb; return this; },
+           verificarCredencialesAsesor: function(pwd) { 
+                setTimeout(()=> { if(this._success) this._success({valido:true, nombre:'TestUser'}); }, 500);
+           },
+           procesarBusquedaInteligente: function(q) {
+                setTimeout(()=> {
+                    if(this._success) {
+                        if(q === '1005') {
+                            this._success({ 
+                                tipo: "BOLETA_OCUPADA", 
+                                data: { 
+                                    infoVenta: { 
+                                        nombre: "Maria", 
+                                        apellido: "Gonzalez", 
+                                        telefono: "3109876543", 
+                                        ciudad: "Medellín", 
+                                        totalAbonos: 50000, 
+                                        restante: 100000,
+                                        urlBoleta: "https://ejemplo.com/boleta/1005"
+                                    }
+                                    // historialAbonos se carga por separado via listarAbonosDeNumero
+                                } 
+                            });
+                        } else if (q === '1006') { 
+                            this._success({ tipo: "BOLETA_DISPONIBLE", data: { numero: "1006" } });
+                        } else { 
+                            this._success({ tipo: "BOLETA_DISPONIBLE", data: { numero: q } }); 
+                        }
+                    }
+                }, 500);
+           },
+           listarAbonosDeNumero: function(num) {
+               setTimeout(()=> { 
+                   if(this._success) this._success({
+                       status: 'ok', 
+                       lista: [
+                           { fecha: '2023-10-25', hora: '09:30 AM', valor: 20000, referencia: 'NEQ12345', metodo: 'Nequi', row: 10, sheet: 'ABONOS 1', numero: num },
+                           { fecha: '2023-11-02', hora: '02:15 PM', valor: 30000, referencia: 'COL56789', metodo: 'Bancolombia', row: 15, sheet: 'ABONOS 1', numero: num }
+                       ]
+                   }); 
+               }, 500);
+           },
+           eliminarAbonoPorFila: function() { setTimeout(()=> { if(this._success) this._success({status:'ok'}); }, 500); },
+           validarVentaYRegistrar: function() { setTimeout(()=> { if(this._success) this._success({status:'ok'}); }, 500); },
+           validarAbonoYRegistrar: function() { setTimeout(()=> { if(this._success) this._success({status:'ok'}); }, 500); },
+           actualizarDatosCliente: function() { setTimeout(()=> { if(this._success) this._success({status:'ok'}); }, 500); },
+           buscarTransferenciasExactas: function(payload) {
+               setTimeout(()=> { 
+                   if(this._success) {
+                       // Mock response for date search
+                       this._success({
+                           status: 'ok',
+                           lista: [
+                               { plataforma: 'Nequi', monto: 50000, referencia: 'MOCK123', status: 'Libre' },
+                               { plataforma: 'Bancolombia', monto: 150000, referencia: 'MOCK456', status: 'Asignado' }
+                           ]
+                       });
+                   }
+               }, 500);
+           }
+       };
+       
+       window.google = { script: { run: mockRunner } };
+    }
+    
+    // Init safely
+    document.addEventListener('DOMContentLoaded', () => {
+        initLogin(); 
+        if(typeof addDefaultPill === 'function') addDefaultPill();
+    });
+  </script>
+</body>
+</html>
