@@ -17,7 +17,6 @@
     body{margin:0; background:radial-gradient(1100px 700px at 8% -10%,rgba(60,181,121,.10),transparent 40%), var(--bg);
       font-family:Poppins,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--ink); padding-bottom: 80px;}
     
-    /* LAYOUT CENTRADO */
     .shell {
         max-width: 550px;
         margin: 20px auto; 
@@ -28,7 +27,6 @@
     }
     .shell.visible { display: block; opacity: 1; }
     
-    /* --- BARRA DE BÚSQUEDA --- */
     .top-search-bar {
       position: sticky; top: 0; z-index: 100;
       background: rgba(255, 255, 255, 0.95);
@@ -89,7 +87,6 @@
       background: rgba(255,255,255,0.8); padding: 5px 15px; border-radius: 20px;
     }
 
-    /* TARJETAS */
     .section-card {
       background: #fff; border: 1px solid var(--ring); border-radius: 24px;
       box-shadow: var(--shadow); padding: 28px 32px; margin-bottom: 24px;
@@ -102,7 +99,6 @@
       display: flex; align-items: center; justify-content: space-between;
     }
 
-    /* ESTILOS INFO CLIENTE */
     .info-panels { display: grid; gap: 20px; margin-top: 10px; }
     .panel { background: rgba(60,181,121,.06); border: 1px solid #cfe3dc; border-radius: 22px; padding: 20px 24px; position: relative; }
     .panel-highlight { background: #fff; border: 2px solid var(--accent); box-shadow: 0 10px 30px rgba(60,181,121,.15); text-align: center; display: flex; flex-direction: column; justify-content: center; }
@@ -113,7 +109,6 @@
     .price-label { font-size: 0.9rem; font-weight: 700; color: #7ea094; text-transform: uppercase; letter-spacing: 1px; }
     .rest-badge { font-size: 1rem; font-weight: 700; color: #e0433e; background: #fbe9e8; display: inline-block; margin: 8px auto 0; padding: 4px 16px; border-radius: 20px; }
     
-    /* CAMPOS VERTICALES */
     .vertical-form { display: flex; flex-direction: column; gap: 16px; }
     label { display: block; font-weight: 700; color: var(--ink-2); margin: 0 0 8px; font-size: 0.9rem; }
     .field { display: flex; align-items: center; gap: 10px; background: #fcfdfd; border: 1px solid var(--ring); border-radius: 12px; padding: 12px 14px; transition: border-color .2s; }
@@ -126,25 +121,21 @@
     .chip-del { border: none; background: var(--danger-bg); color: #d64536; font-weight: 700; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; }
     .btn-add { border: 2px dashed var(--accent); background: rgba(60,181,121,0.05); color: var(--accent-2); border-radius: 12px; padding: 8px 16px; font-weight: 700; cursor: pointer; transition: all .2s; }
 
-    /* BOTONES */
     .cta { display: block; width: 100%; border: none; border-radius: 12px; padding: 14px; font-weight: 700; font-size: 1rem; background: linear-gradient(180deg, var(--accent), var(--accent-2)); color: #fff; box-shadow: 0 10px 20px rgba(60,181,121,.25); cursor: pointer; text-align: center; margin-top: 10px; }
     .cta:active { transform: scale(0.98); }
     .cta-danger { background: linear-gradient(135deg, #ff7675, #d63031); color: #fff; border: none; border-radius: 50px; padding: 10px 24px; font-weight: 700; width: 100%; margin-top: 16px; cursor: pointer; }
 
-    /* LOGIN & MODAL */
     .modal-overlay { position: fixed; inset: 0; background: rgba(36, 74, 62, 0.4); backdrop-filter: blur(3px); z-index: 2000; display: none; align-items: center; justify-content: center; }
     .modal-card { background: #fff; width: 90%; max-width: 400px; border-radius: 26px; padding: 32px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
     #loginOverlay { background: #f6fbf9; z-index: 10000; display: flex; } 
     .hint { margin-top: 12px; text-align: center; font-weight: 600; color: #3c6b5d; font-size: 0.95rem; }
     .hint.err { color: #e74c3c; }
     
-    /* SWITCH DE MODO */
     .mode-switch { display: flex; background: #fff; border-radius: 16px; padding: 6px; margin-bottom: 24px; border: 1px solid var(--ring); box-shadow: var(--shadow); }
     .mode-btn { flex: 1; border: none; background: transparent; padding: 12px; border-radius: 12px; font-weight: 700; color: var(--muted); cursor: pointer; transition: all 0.2s; font-size: 0.95rem; }
     .mode-btn.active { background: var(--pill); color: var(--accent-2); box-shadow: 0 2px 8px rgba(60,181,121,0.1); border: 1px solid var(--ring-strong); }
     .mode-btn:hover:not(.active) { background: #fcfdfd; }
 
-    /* OCR & TIME */
     .time-box{display:flex; align-items:center; gap:10px}
     .time-field{flex:1; display:flex; align-items:center; gap:6px; background:#fcfdfd; border:1px solid var(--ring); border-radius:12px; padding:10px 12px;}
     .time-field input{width:100%; text-align:center; border:0; outline:0; background:transparent; font-weight:700;}
@@ -159,7 +150,6 @@
 </head>
 <body>
 
-  <!-- LOGIN -->
   <div id="loginOverlay" class="modal-overlay">
     <div class="modal-card">
       <h1>🔐 Acceso</h1>
@@ -172,7 +162,6 @@
     </div>
   </div>
 
-  <!-- BARRA DE BÚSQUEDA -->
   <div class="top-search-bar hero-mode" id="topBar" style="display:none">
     <div class="hero-welcome-text">
         <div style="font-size: 4rem; margin-bottom: 10px;">👋</div>
@@ -190,10 +179,8 @@
     <div id="searchFeedback" class="hint" style="margin: 5px 0 0 0; font-size:0.8rem; min-height: 20px;"></div>
   </div>
 
-  <!-- CONTENEDOR APP -->
   <div class="shell" id="appShell">
 
-    <!-- VISTA VENTA (Nueva Venta) -->
     <div id="view-venta" class="view-section">
       <div class="section-card">
         <div class="section-title"><span>🎟️ Boletas</span><button id="btnAddNum" class="btn-add">+ Agregar</button></div>
@@ -211,13 +198,11 @@
         </div>
       </div>
 
-      <!-- SWITCH TIPO VENTA (POR DEFECTO: SEPARAR) -->
       <div class="mode-switch">
         <button id="btnModeAbono" class="mode-btn" onclick="setMode('abono')">💰 Con Abono</button>
         <button id="btnModeSeparar" class="mode-btn active" onclick="setMode('separar')">🎟️ Solo Separar ($0)</button>
       </div>
 
-      <!-- CONTENEDOR DE PAGO (INICIA OCULTO EN SEPARAR) -->
       <div id="paymentSections" style="display: none;">
         <div class="section-card">
           <div class="section-title">🔍 Buscar Pago</div>
@@ -251,7 +236,6 @@
         </div>
       </div>
 
-      <!-- BOTÓN REGISTRAR -->
       <div class="section-card" style="border-color:var(--accent);">
           <div><label>Ref. Venta (Origen)</label><div class="field"><input id="v_referencia" list="l_ref" class="pill"><datalist id="l_ref"><option value="Facebook"><option value="WhatsApp"></datalist></div></div>
           <button id="btnRegistrarVenta" class="cta" style="margin-top:25px; height:50px; font-size:1.1rem; background: #7ea094;">CONFIRMAR SEPARADO ($0)</button>
@@ -260,7 +244,6 @@
       </div>
     </div>
 
-    <!-- VISTA CLIENTE (Abono a Boleta Existente) -->
     <div id="view-cliente" class="view-section">
       <div class="section-card" style="border-top: 5px solid var(--ink);">
         <div class="section-title">👤 Cliente Encontrado</div>
@@ -268,7 +251,6 @@
         <select id="boletaSelector" class="pill" style="margin-top:10px; font-weight:bold; background:#e8f5e9; border-color:#3cb579;"></select>
       </div>
 
-      <!-- SECCIÓN NUEVA: HISTORIAL DE ABONOS -->
       <div class="section-card">
         <div class="section-title">📜 Historial de Pagos</div>
         <div id="historial-abonos-render">
@@ -316,12 +298,10 @@
 
              <div><label>Método</label><div class="field"><select id="a_metodo" class="pill"><option>Nequi</option><option>Bancolombia</option><option>Efectivo</option></select></div></div>
           </div>
-          <!-- ID AGREGADO AQUÍ PARA QUE FUNCIONE EL SCRIPT -->
           <button id="btnRegistrarAbono" class="cta" onclick="registrarAbono()" style="margin-top:20px;">REGISTRAR ABONO</button>
       </div>
     </div>
 
-    <!-- VISTA REFERENCIA -->
     <div id="view-referencia" class="view-section">
       <div class="section-card" style="border-top: 5px solid #8b5cf6;">
         <div class="section-title">🔍 Auditoría</div>
@@ -384,7 +364,6 @@
     $('btnLogin').onclick = ()=> verifyLogin($('loginPwd').value);
     $('btnLogout').onclick = ()=> { localStorage.removeItem(STORAGE_KEY); location.reload(); };
     
-    // --- FUNCIÓN DE LOGIN BLINDADA ---
     function verifyLogin(pwd, auto=false){
       if(!pwd) {
           if(!auto) alert("Por favor ingresa la contraseña."); 
@@ -511,7 +490,6 @@
 
     $('btnBuscarRef').onclick = ()=>{ alert('Función pendiente de conectar a API.'); };
     
-    // --- LÓGICA DE BÚSQUEDA DE TRANSFERENCIA POR FECHA (NUEVO) ---
     function buscarTransferenciasUI(fechaId, hhId, mmId, ampmId, feedbackId, targetInputId) {
         const fecha = $(fechaId).value;
         const hh = $(hhId).value;
@@ -543,11 +521,9 @@
                     if(res.lista.length === 0) {
                         feedback.innerHTML = "<span class='hint err'>No se encontraron transferencias exactas.</span>";
                     } else {
-                        // Render results
                         let html = '<div style="display:grid; gap:8px; margin-top:10px;">';
                         res.lista.forEach(t => {
                             const montoFmt = new Intl.NumberFormat('es-CO').format(t.monto);
-                            // Escapar comillas para el onclick
                             const refSafe = t.referencia.replace(/'/g, "\\'");
                             
                             html += `
@@ -574,7 +550,6 @@
             .buscarTransferenciasExactas(payload);
     }
 
-    // Connect buttons - Se comprueba que existan antes de asignar
     if($('btnBuscarFechaAbono')) $('btnBuscarFechaAbono').onclick = () => {
         buscarTransferenciasUI('t_fecha_abono', 't_hh_abono', 't_mm_abono', 't_ampm_abono', 'feedbackTransferAbono', 'a_ref');
     };
@@ -582,7 +557,6 @@
     if($('btnBuscarFecha')) $('btnBuscarFecha').onclick = () => {
         buscarTransferenciasUI('t_fecha', 't_hh', 't_mm', 't_ampm', 'feedbackTransfer', 'v_referenciaAbono');
     };
-    // -----------------------------------------------------------
 
     let esVentaPendiente = false;
     let esAbonoPendiente = false;
@@ -629,9 +603,7 @@
        loop();
     };
 
-    // --- REGISTRO ABONO CORREGIDO ---
     function registrarAbono() {
-        // Tomar referencia segura al botón (si se llama desde onclick)
         const btn = document.getElementById('btnRegistrarAbono') || { textContent: '', disabled: false };
         
         const boleta = $('boletaSelector').value;
@@ -644,7 +616,7 @@
         if(!ref && metodo !== 'Efectivo') return alert("Falta la referencia.");
 
         const textoOriginal = btn.textContent || 'REGISTRAR ABONO';
-        if(btn.style) { // Si es un elemento real
+        if(btn.style) {
              btn.textContent = 'Procesando...';
              btn.disabled = true;
         }
@@ -667,7 +639,6 @@
                 if(res.status === 'ok'){
                     showModal('Éxito', 'Abono registrado correctamente.');
                     $('a_monto').value = ''; $('a_ref').value = '';
-                    // Recargar datos para ver actualización
                     runSearch(); 
                 } else {
                     showModal('Error', res.mensaje);
@@ -683,12 +654,10 @@
             .validarAbonoYRegistrar(payload);
     };
 
-    // --- RENDERIZADOR CON EDICIÓN DE CLIENTE ---
     function renderClienteInfo(lista){
        const c = lista[0];
        let totalAbonadoGlobal = 0; let totalRestanteGlobal = 0; let boletasStr = [];
        
-       // Llenar selector de boletas
        const select = $('boletaSelector');
        select.innerHTML = ''; 
        
@@ -704,19 +673,16 @@
            select.appendChild(opt);
        });
 
-       // Listener para cargar historial al cambiar boleta
        select.addEventListener('change', () => {
            cargarHistorialAbonos(select.value);
        });
 
-       // Cargar historial inicial para la primera boleta
        if(lista.length > 0) {
            cargarHistorialAbonos(lista[0].numero);
        }
 
        const fmt = (n) => new Intl.NumberFormat('es-CO').format(n);
 
-       // HTML Generado con Inputs Editables
        const html = `
         <div class="info-panels">
           <div class="panel">
@@ -750,14 +716,13 @@
        
        $('cliente-info-render').innerHTML = html;
        
-       // --- LOGICA DEL BOTÓN GUARDAR ---
        $('btnGuardarDatos').addEventListener('click', () => {
            const btn = $('btnGuardarDatos');
            const txtOriginal = btn.textContent;
            btn.disabled = true; btn.textContent = 'Guardando...';
            
            const payload = {
-               numero: $('boletaSelector').value, // Se actualiza la boleta seleccionada
+               numero: $('boletaSelector').value, 
                nombre: $('c_nombre').value,
                apellido: $('c_apellido').value,
                ciudad: $('c_ciudad').value,
@@ -780,7 +745,6 @@
              .actualizarDatosCliente(payload);
        });
 
-       // Lógica Copiar
        $('btnCopiar').addEventListener('click', async () => {
            const links = lista.map(b => `${b.urlBoleta || 'https://.../'+b.numero}`).join('\n');
            try { await navigator.clipboard.writeText(links); alert('Links copiados'); } 
@@ -788,7 +752,6 @@
        });
     }
 
-    // --- NUEVAS FUNCIONES PARA HISTORIAL DE ABONOS ---
     function cargarHistorialAbonos(numero) {
         const div = $('historial-abonos-render');
         div.innerHTML = '<p style="text-align:center; color:var(--accent);">Cargando historial...</p>';
@@ -865,7 +828,6 @@
             .withSuccessHandler(res => {
                 if(res.status === 'ok') {
                     showModal('✅ Eliminado', 'Abono eliminado y transferencia liberada (si aplicaba).');
-                    // Actualizar todo
                     runSearch(); 
                 } else {
                     showModal('❌ Error', res.mensaje);
@@ -891,9 +853,6 @@
     $('mBtn').onclick = ()=> $('modalResult').style.display='none';
     $('t_ampm').onclick = function(){ this.textContent = this.textContent==='AM'?'PM':'AM'; };
 
-    // --- SIMULACIÓN DEL ENTORNO (MOCK) ---
-    // Esta parte permite que la app funcione en la vista previa sin estar en Google Apps Script
-    // Importante: Eliminar o comentar esta sección al llevar el código a producción (Google Apps Script)
     if(typeof google === 'undefined'){
        const mockRunner = {
            _success: null,
@@ -919,7 +878,6 @@
                                         restante: 100000,
                                         urlBoleta: "https://ejemplo.com/boleta/1005"
                                     }
-                                    // historialAbonos se carga por separado via listarAbonosDeNumero
                                 } 
                             });
                         } else if (q === '1006') { 
@@ -948,7 +906,6 @@
            buscarTransferenciasExactas: function(payload) {
                setTimeout(()=> { 
                    if(this._success) {
-                       // Mock response for date search
                        this._success({
                            status: 'ok',
                            lista: [
@@ -964,7 +921,6 @@
        window.google = { script: { run: mockRunner } };
     }
     
-    // Init safely
     document.addEventListener('DOMContentLoaded', () => {
         initLogin(); 
         if(typeof addDefaultPill === 'function') addDefaultPill();
