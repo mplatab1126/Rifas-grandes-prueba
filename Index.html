@@ -478,74 +478,89 @@
     $('ocrDropAbono').addEventListener('paste', async (e)=>{ handleOCR(e, 'ocrStatusAbono', 'a_ref'); });
 
     async function handleOCR(e, statusId, inputId) {
-        const items = e.clipboardData?.items || [];
-        for(const it of items){ if(it.type?.startsWith('image/')){ 
-            $(statusId).textContent = 'Leyendo...';
-            const f = it.getAsFile(); const pre = await preprocessBlobToCanvas(f);
-            const res = await Tesseract.recognize(pre || f, 'spa+eng');
-            const ref = extractRefFromText(res.data.text);
-            if(ref) { $(statusId).textContent = ref; $(inputId).value = ref; } else { $(statusId).textContent = 'No se detectó ref'; }
-        }}
+        // Corrección de seguridad: evitamos el uso de ?.
+        var items = (e.clipboardData && e.clipboardData.items) ? e.clipboardData.items : [];
+        
+        for(var i=0; i<items.length; i++){ 
+            var it = items[i];
+            // Verificamos el tipo de forma segura
+            if(it.type && it.type.indexOf('image/') === 0){ 
+                document.getElementById(statusId).textContent = 'Leyendo...';
+                var f = it.getAsFile(); 
+                var pre = await preprocessBlobToCanvas(f);
+                var res = await Tesseract.recognize(pre || f, 'spa+eng');
+                var ref = extractRefFromText(res.data.text);
+                
+                if(ref) { 
+                    document.getElementById(statusId).textContent = ref; 
+                    document.getElementById(inputId).value = ref; 
+                } else { 
+                    document.getElementById(statusId).textContent = 'No se detectó ref'; 
+                }
+            }
+        }
     }
 
     $('btnBuscarRef').onclick = ()=>{ alert('Función pendiente de conectar a API.'); };
     
     function buscarTransferenciasUI(fechaId, hhId, mmId, ampmId, feedbackId, targetInputId) {
-        const fecha = $(fechaId).value;
-        const hh = $(hhId).value;
-        const mm = $(mmId).value;
-        const ampm = $(ampmId).textContent;
-        const feedback = $(feedbackId);
+        var fecha = document.getElementById(fechaId).value;
+        var hh = document.getElementById(hhId).value;
+        var mm = document.getElementById(mmId).value;
+        var ampm = document.getElementById(ampmId).textContent;
+        var fb = document.getElementById(feedbackId);
 
         if(!fecha || !hh || !mm) {
-            feedback.innerHTML = "<span class='hint err'>Completa la fecha y hora.</span>";
+            fb.innerHTML = "<span class='hint err'>Completa la fecha y hora.</span>";
             return;
         }
 
-        const btn = event.target;
-        const originalTxt = btn.textContent;
+        var btn = event.target;
+        var originalTxt = btn.textContent;
         btn.textContent = "Buscando...";
         btn.disabled = true;
-        feedback.innerHTML = "";
+        fb.innerHTML = "";
 
-        const payload = {
+        var payload = {
             fechaISO: fecha,
-            hora12: `${hh}:${mm} ${ampm}`
+            hora12: hh + ":" + mm + " " + ampm
         };
 
         google.script.run
-            .withSuccessHandler(res => {
+            .withSuccessHandler(function(res) {
                 btn.textContent = originalTxt;
                 btn.disabled = false;
                 if(res.status === 'ok') {
                     if(res.lista.length === 0) {
-                        feedback.innerHTML = "<span class='hint err'>No se encontraron transferencias exactas.</span>";
+                        fb.innerHTML = "<span class='hint err'>No se encontraron transferencias exactas.</span>";
                     } else {
-                        let html = '<div style="display:grid; gap:8px; margin-top:10px;">';
-                        res.lista.forEach(t => {
-                            const montoFmt = new Intl.NumberFormat('es-CO').format(t.monto);
-                            const refSafe = t.referencia.replace(/'/g, "\\'");
+                        var html = '<div style="display:grid; gap:8px; margin-top:10px;">';
+                        
+                        // Bucle seguro para generar HTML sin backticks
+                        for(var i=0; i<res.lista.length; i++){
+                            var t = res.lista[i];
+                            var montoFmt = new Intl.NumberFormat('es-CO').format(t.monto);
+                            var refSafe = t.referencia.replace(/'/g, "\\'");
                             
-                            html += `
-                                <div onclick="document.getElementById('${targetInputId}').value = '${refSafe}'; document.getElementById('${feedbackId}').innerHTML = '<span class=ok>Referencia seleccionada: ${refSafe}</span>'" 
-                                     style="border:1px solid #dfe9e5; padding:10px; border-radius:10px; cursor:pointer; background:#fff; text-align:left; transition:background 0.2s;"
-                                     onmouseover="this.style.background='#f0f9f4'" onmouseout="this.style.background='#fff'">
-                                    <div style="font-weight:bold; color:#244a3e;">${t.plataforma} - $${montoFmt}</div>
-                                    <div style="font-size:0.8rem; color:#7ea094;">Ref: ${t.referencia} | ${t.status || 'Libre'}</div>
-                                </div>
-                            `;
-                        });
+                            html += '<div onclick="document.getElementById(\'' + targetInputId + '\').value = \'' + refSafe + '\'; document.getElementById(\'' + feedbackId + '\').innerHTML = \'<span class=ok>Referencia seleccionada: ' + refSafe + '</span>\'"';
+                            html += ' style="border:1px solid #dfe9e5; padding:10px; border-radius:10px; cursor:pointer; background:#fff; text-align:left; transition:background 0.2s;"';
+                            html += ' onmouseover="this.style.background=\'#f0f9f4\'" onmouseout="this.style.background=\'#fff\'">';
+                            html += '<div style="font-weight:bold; color:#244a3e;">' + t.plataforma + ' - $' + montoFmt + '</div>';
+                            html += '<div style="font-size:0.8rem; color:#7ea094;">Ref: ' + t.referencia + ' | ' + (t.status || 'Libre') + '</div>';
+                            html += '</div>';
+                        }
+                        
                         html += '</div>';
-                        feedback.innerHTML = html;
+                        fb.innerHTML = html;
                     }
                 } else {
-                    feedback.innerHTML = `<span class='hint err'>Error: ${res.mensaje}</span>`;
+                    fb.innerHTML = "<span class='hint err'>Error: " + res.mensaje + "</span>";
                 }
             })
-            .withFailureHandler(e => {
+            .withFailureHandler(function(e) {
                 btn.textContent = originalTxt;
                 btn.disabled = false;
-                feedback.innerHTML = "<span class='hint err'>Error de conexión.</span>";
+                fb.innerHTML = "<span class='hint err'>Error de conexión.</span>";
             })
             .buscarTransferenciasExactas(payload);
     }
@@ -844,87 +859,62 @@
     }
 
     function renderReferenciaInfo(res){
-       const d = res.data;
-       $('ref-detail-render').innerHTML = `<div style="text-align:center; padding:10px; background:${d.estadoLogico==='Ocupado'?'#fee2e2':'#dcfce7'}; border-radius:12px; margin-bottom:15px;">
-         <h2 style="margin:0;">${d.referencia}</h2><span>${d.estadoLogico}</span></div>
-         <p><b>Monto:</b> $${d.monto}</p><p><b>Banco:</b> ${d.plataforma}</p><p><b>Detalle:</b> ${d.detalle||'--'}</p>`;
-    }
-    function showModal(title,msg){ $('mTitle').textContent=title; $('mMsg').textContent=msg; $('modalResult').style.display='flex'; }
-    $('mBtn').onclick = ()=> $('modalResult').style.display='none';
-    $('t_ampm').onclick = function(){ this.textContent = this.textContent==='AM'?'PM':'AM'; };
-
-    if(typeof google === 'undefined'){
-       const mockRunner = {
-           _success: null,
-           _failure: null,
-           withSuccessHandler: function(cb) { this._success = cb; return this; },
-           withFailureHandler: function(cb) { this._failure = cb; return this; },
-           verificarCredencialesAsesor: function(pwd) { 
-                setTimeout(()=> { if(this._success) this._success({valido:true, nombre:'TestUser'}); }, 500);
-           },
-           procesarBusquedaInteligente: function(q) {
-                setTimeout(()=> {
-                    if(this._success) {
-                        if(q === '1005') {
-                            this._success({ 
-                                tipo: "BOLETA_OCUPADA", 
-                                data: { 
-                                    infoVenta: { 
-                                        nombre: "Maria", 
-                                        apellido: "Gonzalez", 
-                                        telefono: "3109876543", 
-                                        ciudad: "Medellín", 
-                                        totalAbonos: 50000, 
-                                        restante: 100000,
-                                        urlBoleta: "https://ejemplo.com/boleta/1005"
-                                    }
-                                } 
-                            });
-                        } else if (q === '1006') { 
-                            this._success({ tipo: "BOLETA_DISPONIBLE", data: { numero: "1006" } });
-                        } else { 
-                            this._success({ tipo: "BOLETA_DISPONIBLE", data: { numero: q } }); 
-                        }
-                    }
-                }, 500);
-           },
-           listarAbonosDeNumero: function(num) {
-               setTimeout(()=> { 
-                   if(this._success) this._success({
-                       status: 'ok', 
-                       lista: [
-                           { fecha: '2023-10-25', hora: '09:30 AM', valor: 20000, referencia: 'NEQ12345', metodo: 'Nequi', row: 10, sheet: 'ABONOS 1', numero: num },
-                           { fecha: '2023-11-02', hora: '02:15 PM', valor: 30000, referencia: 'COL56789', metodo: 'Bancolombia', row: 15, sheet: 'ABONOS 1', numero: num }
-                       ]
-                   }); 
-               }, 500);
-           },
-           eliminarAbonoPorFila: function() { setTimeout(()=> { if(this._success) this._success({status:'ok'}); }, 500); },
-           validarVentaYRegistrar: function() { setTimeout(()=> { if(this._success) this._success({status:'ok'}); }, 500); },
-           validarAbonoYRegistrar: function() { setTimeout(()=> { if(this._success) this._success({status:'ok'}); }, 500); },
-           actualizarDatosCliente: function() { setTimeout(()=> { if(this._success) this._success({status:'ok'}); }, 500); },
-           buscarTransferenciasExactas: function(payload) {
-               setTimeout(()=> { 
-                   if(this._success) {
-                       this._success({
-                           status: 'ok',
-                           lista: [
-                               { plataforma: 'Nequi', monto: 50000, referencia: 'MOCK123', status: 'Libre' },
-                               { plataforma: 'Bancolombia', monto: 150000, referencia: 'MOCK456', status: 'Asignado' }
-                           ]
-                       });
-                   }
-               }, 500);
-           }
-       };
+       var d = res.data;
+       var fondo = (d.estadoLogico === 'Ocupado') ? '#fee2e2' : '#dcfce7';
        
-       window.google = { script: { run: mockRunner } };
+       // Usamos concatenación simple (+) para evitar errores de caracteres ocultos
+       var html = '<div style="text-align:center; padding:10px; background:' + fondo + '; border-radius:12px; margin-bottom:15px;">';
+       html += '<h2 style="margin:0;">' + d.referencia + '</h2>';
+       html += '<span>' + d.estadoLogico + '</span></div>';
+       html += '<p><b>Monto:</b> $' + d.monto + '</p>';
+       html += '<p><b>Banco:</b> ' + d.plataforma + '</p>';
+       html += '<p><b>Detalle:</b> ' + (d.detalle||'--') + '</p>';
+
+       document.getElementById('ref-detail-render').innerHTML = html;
+    }
+
+    // --- LÓGICA DE INICIO SEGURA ---
+
+    function conectarBotonLogin() {
+        var btn = document.getElementById('btnLogin');
+        var input = document.getElementById('loginPwd');
+        
+        if (btn) {
+            btn.onclick = function() {
+                verifyLogin(input.value);
+            };
+        }
+        
+        if (input) {
+            input.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    verifyLogin(input.value);
+                }
+            });
+        }
+    }
+
+    // Funciones auxiliares de UI
+    function showModal(title,msg){ 
+        document.getElementById('mTitle').textContent=title; 
+        document.getElementById('mMsg').textContent=msg; 
+        document.getElementById('modalResult').style.display='flex'; 
     }
     
-    document.addEventListener('DOMContentLoaded', () => {
-        initLogin(); 
+    var btnModal = document.getElementById('mBtn');
+    if(btnModal) btnModal.onclick = function(){ document.getElementById('modalResult').style.display='none'; };
+
+    var btnAmPm = document.getElementById('t_ampm');
+    if(btnAmPm) btnAmPm.onclick = function(){ this.textContent = this.textContent==='AM'?'PM':'AM'; };
+
+    // INICIALIZACIÓN FINAL
+    document.addEventListener('DOMContentLoaded', function() {
+        initLogin();
+        conectarBotonLogin();
         if(typeof addDefaultPill === 'function') addDefaultPill();
     });
+
   </script>
 </body>
 </html>
