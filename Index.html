@@ -670,25 +670,28 @@
     };
 
     function renderClienteInfo(lista){
-       const c = lista[0];
-       let totalAbonadoGlobal = 0; let totalRestanteGlobal = 0; let boletasStr = [];
+       var c = lista[0];
+       var totalAbonadoGlobal = 0; 
+       var totalRestanteGlobal = 0; 
+       var boletasStr = [];
        
-       const select = $('boletaSelector');
+       var select = document.getElementById('boletaSelector');
        select.innerHTML = ''; 
        
-       lista.forEach(b => { 
-           const restante = Number(b.restante) || 0;
+       for(var i=0; i<lista.length; i++){
+           var b = lista[i];
+           var restante = Number(b.restante) || 0;
            totalAbonadoGlobal += (Number(b.totalAbonos) || 0);
            totalRestanteGlobal += restante;
            boletasStr.push(b.numero);
            
-           const opt = document.createElement('option');
+           var opt = document.createElement('option');
            opt.value = b.numero;
-           opt.text = `Boleta ${b.numero} (Resta: $${new Intl.NumberFormat('es-CO').format(restante)})`;
+           opt.text = 'Boleta ' + b.numero + ' (Resta: $' + new Intl.NumberFormat('es-CO').format(restante) + ')';
            select.appendChild(opt);
-       });
+       }
 
-       select.addEventListener('change', () => {
+       select.addEventListener('change', function() {
            cargarHistorialAbonos(select.value);
        });
 
@@ -696,56 +699,57 @@
            cargarHistorialAbonos(lista[0].numero);
        }
 
-       const fmt = (n) => new Intl.NumberFormat('es-CO').format(n);
+       var fmt = function(n) { return new Intl.NumberFormat('es-CO').format(n); };
 
-       const html = `
-        <div class="info-panels">
-          <div class="panel">
-            <ul class="dl">
-              <li><b>Boletas:</b> <span>${boletasStr.join(', ')}</span></li>
-              <li><b>Teléfono:</b> <span>${c.telefono}</span></li>
-            </ul>
-            
-            <div style="margin-top:15px; padding-top:10px; border-top:1px dashed #cfe3dc;">
-                <label style="font-size:0.85rem; font-weight:700; color:#244a3e;">Nombre</label>
-                <input id="c_nombre" type="text" class="pill" style="background:#fff; border:1px solid #dfe9e5; padding:6px 10px; width:100%; margin-bottom:8px;" value="${c.nombre}">
-                
-                <label style="font-size:0.85rem; font-weight:700; color:#244a3e;">Apellido</label>
-                <input id="c_apellido" type="text" class="pill" style="background:#fff; border:1px solid #dfe9e5; padding:6px 10px; width:100%; margin-bottom:8px;" value="${c.apellido}">
-                
-                <label style="font-size:0.85rem; font-weight:700; color:#244a3e;">Ciudad</label>
-                <input id="c_ciudad" type="text" class="pill" style="background:#fff; border:1px solid #dfe9e5; padding:6px 10px; width:100%; margin-bottom:8px;" value="${c.ciudad}">
-                
-                <button id="btnGuardarDatos" class="cta" style="width:100%; padding:10px; font-size:0.9rem; background:var(--ink); margin-top:5px;">💾 Guardar Cambios</button>
-            </div>
+       // --- NUEVO DISEÑO COMPACTO Y MODERNIZADO ---
+       var html = '<div style="background:#f8fbf9; border:1px solid #cfe3dc; border-radius:16px; padding:15px;">';
+       
+       // 1. Cabecera Compacta: Teléfono a la derecha, Boletas a la izquierda
+       html += '<div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:12px;">';
+       html += '  <div><div style="font-size:0.75rem; color:#7ea094; font-weight:700; text-transform:uppercase;">BOLETAS</div><div style="font-weight:700; color:#244a3e; font-size:1rem;">' + boletasStr.join(', ') + '</div></div>';
+       html += '  <div style="text-align:right;"><div style="font-size:0.75rem; color:#7ea094; font-weight:700; text-transform:uppercase;">TELÉFONO</div><div style="font-weight:700; color:#1e8f5c; font-size:1rem;">' + c.telefono + '</div></div>';
+       html += '</div>';
 
-          </div>
-          <div class="panel panel-highlight">
-            <div class="price-label">Total abonado:</div>
-            <div class="price-big">$ ${fmt(totalAbonadoGlobal)}</div>
-            <div class="rest-badge">Restante: $ ${fmt(totalRestanteGlobal)}</div>
-          </div>
-        </div>
-        <button id="btnCopiar" class="cta" style="margin-top:16px;">Copiar boleta digital</button>
-       `;
+       // 2. Grid de Inputs (Nombre, Apellido en fila 1; Ciudad y Botón en fila 2)
+       html += '<div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">';
+       html += '  <div><input id="c_nombre" type="text" class="pill" style="background:#fff; border:1px solid #dfe9e5; padding:8px; width:100%; font-size:0.9rem;" value="' + c.nombre + '" placeholder="Nombre"></div>';
+       html += '  <div><input id="c_apellido" type="text" class="pill" style="background:#fff; border:1px solid #dfe9e5; padding:8px; width:100%; font-size:0.9rem;" value="' + c.apellido + '" placeholder="Apellido"></div>';
+       html += '</div>';
        
-       $('cliente-info-render').innerHTML = html;
+       html += '<div style="display:flex; gap:8px; margin-bottom:15px;">';
+       html += '  <input id="c_ciudad" type="text" class="pill" style="flex:1; background:#fff; border:1px solid #dfe9e5; padding:8px; width:100%; font-size:0.9rem;" value="' + c.ciudad + '" placeholder="Ciudad">';
+       html += '  <button id="btnGuardarDatos" style="border:none; background:var(--ink); color:#fff; border-radius:10px; cursor:pointer; padding:0 15px; font-size:1.2rem; transition: transform 0.2s;" title="Guardar Cambios">💾</button>';
+       html += '</div>';
+
+       // 3. Barra Financiera Horizontal (Compacta)
+       html += '<div style="display:flex; justify-content:space-between; align-items:center; background:#fff; border:2px dashed #cfe3dc; border-radius:12px; padding:10px 15px;">';
+       html += '  <div><span style="font-size:0.7rem; color:#7ea094; font-weight:700; display:block; text-transform:uppercase;">ABONADO</span><span style="font-size:1.3rem; font-weight:800; color:#244a3e;">$ ' + fmt(totalAbonadoGlobal) + '</span></div>';
+       html += '  <div style="height:30px; width:1px; background:#dfe9e5;"></div>'; // Separador vertical
+       html += '  <div style="text-align:right;"><span style="font-size:0.7rem; color:#e74c3c; font-weight:700; display:block; text-transform:uppercase;">RESTA</span><span style="font-size:1.3rem; font-weight:800; color:#e74c3c;">$ ' + fmt(totalRestanteGlobal) + '</span></div>';
+       html += '</div>';
+
+       // 4. Botón Copiar (Discreto al final)
+       html += '<button id="btnCopiar" style="width:100%; margin-top:10px; background:transparent; border:1px solid #3cb579; color:#3cb579; padding:8px; border-radius:10px; font-weight:600; cursor:pointer; font-size:0.85rem;">📋 Copiar links de pago</button>';
        
-       $('btnGuardarDatos').addEventListener('click', () => {
-           const btn = $('btnGuardarDatos');
-           const txtOriginal = btn.textContent;
-           btn.disabled = true; btn.textContent = 'Guardando...';
+       html += '</div>'; // Fin del contenedor
+       
+       document.getElementById('cliente-info-render').innerHTML = html;
+       
+       document.getElementById('btnGuardarDatos').addEventListener('click', function() {
+           var btn = document.getElementById('btnGuardarDatos');
+           var txtOriginal = btn.textContent;
+           btn.disabled = true; btn.textContent = '...';
            
-           const payload = {
-               numero: $('boletaSelector').value, 
-               nombre: $('c_nombre').value,
-               apellido: $('c_apellido').value,
-               ciudad: $('c_ciudad').value,
+           var payload = {
+               numero: document.getElementById('boletaSelector').value, 
+               nombre: document.getElementById('c_nombre').value,
+               apellido: document.getElementById('c_apellido').value,
+               ciudad: document.getElementById('c_ciudad').value,
                contrasena: localStorage.getItem(STORAGE_KEY)
            };
            
            google.script.run
-             .withSuccessHandler(res => {
+             .withSuccessHandler(function(res) {
                  btn.disabled = false; btn.textContent = txtOriginal;
                  if(res.status==='ok'){ 
                      showModal('✅ Datos Actualizados','La información del cliente ha sido modificada correctamente.'); 
@@ -753,15 +757,15 @@
                      showModal('⚠️ Error', res.mensaje); 
                  }
              })
-             .withFailureHandler(e => {
+             .withFailureHandler(function(e) {
                  btn.disabled = false; btn.textContent = txtOriginal;
                  showModal('❌ Error de conexión', e.message);
              })
              .actualizarDatosCliente(payload);
        });
 
-       $('btnCopiar').addEventListener('click', async () => {
-           const links = lista.map(b => `${b.urlBoleta || 'https://.../'+b.numero}`).join('\n');
+       document.getElementById('btnCopiar').addEventListener('click', async function() {
+           var links = lista.map(function(b) { return b.urlBoleta || 'https://.../'+b.numero; }).join('\n');
            try { await navigator.clipboard.writeText(links); alert('Links copiados'); } 
            catch(e){ alert('Error copiando'); }
        });
