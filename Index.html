@@ -225,7 +225,7 @@
               <div class="field"><input id="t_fecha" class="pill" type="date"></div>
             </div>
 
-            <button id="btnBuscarInteligente" class="cta" style="margin-top:10px;">🔍 Buscar Transferencia</button>
+            <button id="btnBuscarInteligente" type="button" class="cta" style="margin-top:10px;" onclick="buscarTransferenciasUI('btnBuscarInteligente', 't_fecha', 't_monto', 't_ref', 'feedbackTransfer', 'v_referenciaAbono', 'v_primerAbono', 'v_metodoPago')">🔍 Buscar Transferencia</button>
           </div>
           
           <div id="feedbackTransfer" class="hint"></div>
@@ -269,16 +269,19 @@
     </div>
 
     <div id="view-cliente" class="view-section">
-      <div class="section-card" style="border-top: 5px solid var(--ink);">
-        <div class="section-title">👤 Cliente Encontrado</div>
+      <div class="section-card" style="border-top: 5px solid var(--ink); padding: 20px;">
+        <div class="section-title" style="margin-bottom: 12px;">👤 Cliente Encontrado</div>
+        
         <div id="cliente-info-render"></div>
-        <select id="boletaSelector" class="pill" style="margin-top:10px; font-weight:bold; background:#e8f5e9; border-color:#3cb579;"></select>
-      </div>
-
-      <div class="section-card">
-        <div class="section-title">📜 Historial de Pagos</div>
-        <div id="historial-abonos-render">
-            <p style="text-align:center; color:#7ea094;">Selecciona una boleta para ver sus abonos.</p>
+        
+        <div style="margin-top: 15px; background: #fcfdfd; border: 1px solid var(--ring); border-radius: 12px; padding: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="font-weight: 700; color: var(--ink-2); font-size: 0.85rem;">📜 Historial de Pagos</div>
+                <select id="boletaSelector" style="background:#e8f5e9; border:1px solid #3cb579; border-radius:6px; padding:2px 6px; font-weight:bold; font-size:0.75rem; color:var(--ink); outline:none; max-width: 60%;"></select>
+            </div>
+            <div id="historial-abonos-render">
+                <p style="text-align:center; color:#7ea094; font-size:0.8rem; margin:0;">Cargando...</p>
+            </div>
         </div>
       </div>
 
@@ -301,7 +304,7 @@
               <div class="field"><input id="t_fecha_abono" class="pill" type="date"></div>
             </div>
 
-            <button id="btnBuscarInteligenteAbono" class="cta" style="margin-top:10px;">🔍 Buscar Transferencia</button>
+            <button id="btnBuscarInteligenteAbono" type="button" class="cta" style="margin-top:10px;" onclick="buscarTransferenciasUI('btnBuscarInteligenteAbono', 't_fecha_abono', 't_monto_abono', 't_ref_abono', 'feedbackTransferAbono', 'a_ref', 'a_monto', 'a_metodo')">🔍 Buscar Transferencia</button>
          </div>
          <div id="feedbackTransferAbono" class="hint"></div>
       </div>
@@ -309,7 +312,13 @@
       <div class="section-card">
           <div class="section-title">💰 Nuevo Abono</div>
           <div class="vertical-form">
-             <div><label>Valor</label><div class="field"><input type="number" id="a_monto" class="pill" placeholder="0"></div></div>
+             <div>
+               <label>✅ Selecciona las boletas a abonar:</label>
+               <div id="boletas-checkbox-container" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 5px;">
+                  </div>
+             </div>
+
+             <div><label>Valor Total a Repartir</label><div class="field"><input type="number" id="a_monto" class="pill" placeholder="0"></div></div>
              
              <div>
                <label>Método de Pago / Plataforma</label>
@@ -536,13 +545,52 @@
         $('btnBuscarRef').onclick = ()=>{ alert('Función pendiente de conectar a API.'); };
     }
     
-    // --- NUEVA FUNCIÓN MÁGICA PARA LLENAR LAS 3 CAJITAS ---
+    // --- FUNCIÓN PARA LLENAR Y BLOQUEAR LAS 3 CAJITAS POR SEGURIDAD ---
     function seleccionarTransferencia(refId, montoId, metodoId, feedbackId, refVal, montoVal, metodoVal) {
-        document.getElementById(refId).value = refVal;
-        document.getElementById(montoId).value = montoVal;
-        document.getElementById(metodoId).value = metodoVal;
+        var refInput = document.getElementById(refId);
+        var montoInput = document.getElementById(montoId);
+        var metodoInput = document.getElementById(metodoId);
+
+        // 1. Llenamos los datos
+        refInput.value = refVal;
+        montoInput.value = montoVal;
+        metodoInput.value = metodoVal;
         
-        document.getElementById(feedbackId).innerHTML = '<span class="ok" style="color:#1e8f5c; font-weight:bold;">¡Pago de $' + montoVal + ' cargado exitosamente!</span>';
+        // 2. Bloqueamos las cajitas para que el asesor no pueda alterar lo del banco
+        refInput.readOnly = true;
+        montoInput.readOnly = true;
+        metodoInput.readOnly = true;
+        
+        // 3. Les damos un color verdoso para que se note visualmente que están protegidos
+        refInput.style.backgroundColor = "#edf7f2";
+        montoInput.style.backgroundColor = "#edf7f2";
+        metodoInput.style.backgroundColor = "#edf7f2";
+
+        // 4. Mostramos éxito y damos la opción de "arrepentirse" (desbloquear)
+        document.getElementById(feedbackId).innerHTML = '<span class="ok" style="color:#1e8f5c; font-weight:bold;">¡Pago cargado y bloqueado por seguridad! 🔒</span><br><span style="color:#e74c3c; cursor:pointer; font-size:0.8rem; font-weight:bold; text-decoration:underline; display:inline-block; margin-top:5px;" onclick="desbloquearCampos(\'' + refId + '\', \'' + montoId + '\', \'' + metodoId + '\', \'' + feedbackId + '\')">❌ Desbloquear y limpiar datos</span>';
+    }
+
+    // --- FUNCIÓN PARA DESBLOQUEAR SI EL ASESOR SE EQUIVOCÓ ---
+    function desbloquearCampos(refId, montoId, metodoId, feedbackId) {
+        var refInput = document.getElementById(refId);
+        var montoInput = document.getElementById(montoId);
+        var metodoInput = document.getElementById(metodoId);
+
+        refInput.readOnly = false;
+        montoInput.readOnly = false;
+        metodoInput.readOnly = false;
+
+        refInput.value = "";
+        montoInput.value = "";
+        metodoInput.value = "";
+
+        refInput.style.backgroundColor = "transparent";
+        montoInput.style.backgroundColor = "transparent";
+        metodoInput.style.backgroundColor = "transparent";
+        
+        if(feedbackId) {
+            document.getElementById(feedbackId).innerHTML = '<span style="color:#7ea094; font-size:0.85rem;">Campos desbloqueados. Puedes buscar de nuevo o escribir manualmente.</span>';
+        }
     }
 
     function buscarTransferenciasUI(btnId, fechaId, montoIdFiltro, refIdFiltro, feedbackId, targetRefId, targetMontoId, targetMetodoId) {
@@ -616,21 +664,6 @@
             .buscarTransferenciasExactas(payload);
     }
 
-    // Conectamos los nuevos botones indicando CUÁLES son las 3 cajitas destino
-    if(document.getElementById('btnBuscarInteligenteAbono')) {
-        document.getElementById('btnBuscarInteligenteAbono').onclick = function() {
-            // Fíjate que al final le decimos que llene: 'a_ref', 'a_monto', 'a_metodo'
-            buscarTransferenciasUI('btnBuscarInteligenteAbono', 't_fecha_abono', 't_monto_abono', 't_ref_abono', 'feedbackTransferAbono', 'a_ref', 'a_monto', 'a_metodo');
-        };
-    }
-    
-    if(document.getElementById('btnBuscarInteligente')) {
-        document.getElementById('btnBuscarInteligente').onclick = function() {
-            // Fíjate que al final le decimos que llene: 'v_referenciaAbono', 'v_primerAbono', 'v_metodoPago'
-            buscarTransferenciasUI('btnBuscarInteligente', 't_fecha', 't_monto', 't_ref', 'feedbackTransfer', 'v_referenciaAbono', 'v_primerAbono', 'v_metodoPago');
-        };
-    }
-
     let esVentaPendiente = false;
     let esAbonoPendiente = false;
     $('btnForzarPendiente').onclick = ()=>{ 
@@ -665,7 +698,8 @@
               showModal('Resumen', `Registradas: ${ok} / Errores: ${fails}`);
               if(fails===0){ 
                  $('v_nombre').value=''; $('v_apellido').value=''; $('v_telefono').value=''; 
-                 $('v_ciudad').value=''; $('v_primerAbono').value=0; $('v_referenciaAbono').value='';
+                 $('v_ciudad').value=''; $('v_primerAbono').value=0; $('v_referenciaAbono').value=''; $('v_metodoPago').value='';
+                 desbloquearCampos('v_referenciaAbono', 'v_primerAbono', 'v_metodoPago', 'feedbackTransfer');
                  numList.innerHTML=''; addDefaultPill(); activateHeroMode();
               }
               return;
@@ -677,55 +711,87 @@
     };
 
     function registrarAbono() {
-        const btn = document.getElementById('btnRegistrarAbono') || { textContent: '', disabled: false };
+        const btn = document.getElementById('btnRegistrarAbono');
         
-        const boleta = $('boletaSelector').value;
-        const monto = $('a_monto').value;
+        // 1. Buscamos todas las boletas que el asesor dejó marcadas con el chulito
+        const checkboxes = document.querySelectorAll('.boleta-pay-checkbox:checked');
+        const boletasTarget = Array.from(checkboxes).map(function(c) { return c.value; });
+        
+        if(boletasTarget.length === 0) return alert("Debes seleccionar al menos una boleta (con el chulito) para abonar.");
+        
+        const montoTotal = Number($('a_monto').value);
         const ref = $('a_ref').value;
         const metodo = $('a_metodo').value;
         
-        if(!boleta) return alert("Selecciona una boleta.");
-        if(Number(monto) <= 0) return alert("El monto debe ser mayor a 0.");
+        if(montoTotal <= 0) return alert("El monto debe ser mayor a 0.");
         if(!ref && metodo !== 'Efectivo') return alert("Falta la referencia.");
 
-        const textoOriginal = btn.textContent || 'REGISTRAR ABONO';
-        if(btn.style) {
+        // 2. Dividimos el total exacto entre el número de boletas chuleadas
+        const montoPorBoleta = Math.floor(montoTotal / boletasTarget.length);
+
+        const textoOriginal = btn ? btn.textContent : 'REGISTRAR ABONO';
+        if(btn) {
              btn.textContent = 'Procesando...';
              btn.disabled = true;
         }
 
-        const payload = {
-            numeroBoleta: boleta,
-            valorAbono: monto,
+        const basePayload = {
             metodoPago: metodo,
             referencia: ref || 'efectivo',
             contrasena: localStorage.getItem(STORAGE_KEY),
             esPendiente: esAbonoPendiente
         };
 
-        google.script.run
-            .withSuccessHandler(res => {
-                if(btn.style) {
+        let ok = 0;
+        let fails = 0;
+        let idx = 0;
+
+        // 3. Ejecutamos el guardado boleta por boleta mágicamente
+        function loopAbonos() {
+            if (idx >= boletasTarget.length) {
+                if(btn) {
                     btn.textContent = textoOriginal;
                     btn.disabled = false;
                 }
-                if(res.status === 'ok'){
-                    showModal('Éxito', 'Abono registrado correctamente.');
-                    $('a_monto').value = ''; $('a_ref').value = '';
-                    runSearch(); 
+                
+                if (fails === 0) {
+                    const mensaje = boletasTarget.length > 1 
+                        ? `Se registraron ${ok} abonos correctamente ($${montoPorBoleta} a cada boleta).`
+                        : 'Abono registrado correctamente.';
+                    
+                    showModal('Éxito', mensaje);
+                    $('a_monto').value = ''; $('a_ref').value = ''; $('a_metodo').value = '';
+                    desbloquearCampos('a_ref', 'a_monto', 'a_metodo', 'feedbackTransferAbono');
+                    runSearch(); // Recargamos para ver los saldos nuevos
                 } else {
-                    showModal('Error', res.mensaje);
+                    showModal('Aviso', `Se registraron ${ok} abonos, pero fallaron ${fails}.`);
                 }
-            })
-            .withFailureHandler(err => {
-                if(btn.style) {
-                    btn.disabled = false;
-                    btn.textContent = textoOriginal;
-                }
-                showModal('Error de Conexión', err.message);
-            })
-            .validarAbonoYRegistrar(payload);
-    };
+                return;
+            }
+
+            const payload = {
+                ...basePayload,
+                numeroBoleta: boletasTarget[idx],
+                valorAbono: montoPorBoleta
+            };
+            
+            idx++;
+
+            google.script.run
+                .withSuccessHandler(res => {
+                    if (res.status === 'ok') ok++;
+                    else fails++;
+                    loopAbonos();
+                })
+                .withFailureHandler(err => {
+                    fails++;
+                    loopAbonos();
+                })
+                .validarAbonoYRegistrar(payload);
+        }
+
+        loopAbonos();
+    }
 
     function renderClienteInfo(lista){
        var c = lista[0];
@@ -736,6 +802,11 @@
        var select = document.getElementById('boletaSelector');
        select.innerHTML = ''; 
        
+       var checkboxContainer = document.getElementById('boletas-checkbox-container');
+       if(checkboxContainer) checkboxContainer.innerHTML = '';
+       
+       var fmt = function(n) { return new Intl.NumberFormat('es-CO').format(n); };
+
        for(var i=0; i<lista.length; i++){
            var b = lista[i];
            var restante = Number(b.restante) || 0;
@@ -743,10 +814,32 @@
            totalRestanteGlobal += restante;
            boletasStr.push(b.numero);
            
+           // 1. Llenamos el Dropdown (Solo para ver el historial)
            var opt = document.createElement('option');
            opt.value = b.numero;
-           opt.text = 'Boleta ' + b.numero + ' (Resta: $' + new Intl.NumberFormat('es-CO').format(restante) + ')';
+           opt.text = 'Ver historial: Boleta ' + b.numero;
            select.appendChild(opt);
+
+           // 2. Llenamos los Checkboxes (Para elegir a cuáles abonar)
+           if(checkboxContainer) {
+               var label = document.createElement('label');
+               label.style.cssText = "display:flex; align-items:center; gap:8px; background:var(--pill); padding:8px 14px; border-radius:12px; border:1px solid var(--ring-strong); cursor:pointer; font-size:0.9rem; transition: all 0.2s;";
+               
+               var chk = document.createElement('input');
+               chk.type = 'checkbox';
+               chk.value = b.numero;
+               chk.className = 'boleta-pay-checkbox';
+               chk.checked = true; // Por defecto todas chuleadas
+               chk.style.transform = "scale(1.3)";
+               
+               var span = document.createElement('span');
+               span.innerHTML = '<b>' + b.numero + '</b> (Resta $' + fmt(restante) + ')';
+               span.style.color = "var(--ink-2)";
+               
+               label.appendChild(chk);
+               label.appendChild(span);
+               checkboxContainer.appendChild(label);
+           }
        }
 
        select.addEventListener('change', function() {
@@ -757,41 +850,38 @@
            cargarHistorialAbonos(lista[0].numero);
        }
 
-       var fmt = function(n) { return new Intl.NumberFormat('es-CO').format(n); };
-
-       // --- NUEVO DISEÑO COMPACTO Y MODERNIZADO ---
-       var html = '<div style="background:#f8fbf9; border:1px solid #cfe3dc; border-radius:16px; padding:15px;">';
+       // --- DISEÑO ULTRA COMPACTO ---
+       var html = '<div style="background:#f8fbf9; border:1px solid #cfe3dc; border-radius:12px; padding:12px;">';
        
-       // 1. Cabecera Compacta: Teléfono a la derecha, Boletas a la izquierda
-       html += '<div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:12px;">';
-       html += '  <div><div style="font-size:0.75rem; color:#7ea094; font-weight:700; text-transform:uppercase;">BOLETAS</div><div style="font-weight:700; color:#244a3e; font-size:1rem;">' + boletasStr.join(', ') + '</div></div>';
-       html += '  <div style="text-align:right;"><div style="font-size:0.75rem; color:#7ea094; font-weight:700; text-transform:uppercase;">TELÉFONO</div><div style="font-weight:700; color:#1e8f5c; font-size:1rem;">' + c.telefono + '</div></div>';
+       // Fila 1: Boletas y Teléfono
+       html += '<div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:8px; padding-bottom:8px; border-bottom:1px dashed #cfe3dc;">';
+       html += '  <div><div style="font-size:0.65rem; color:#7ea094; font-weight:700;">BOLETAS</div><div style="font-weight:800; color:var(--ink); font-size:0.95rem; line-height:1.2;">' + boletasStr.join(', ') + '</div></div>';
+       html += '  <div style="text-align:right;"><div style="font-size:0.65rem; color:#7ea094; font-weight:700;">TELÉFONO</div><div style="font-weight:800; color:#1e8f5c; font-size:0.95rem; line-height:1.2;">' + c.telefono + '</div></div>';
        html += '</div>';
 
-       // 2. Grid de Inputs (Nombre, Apellido en fila 1; Ciudad y Botón en fila 2)
-       html += '<div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">';
-       html += '  <div><input id="c_nombre" type="text" class="pill" style="background:#fff; border:1px solid #dfe9e5; padding:8px; width:100%; font-size:0.9rem;" value="' + c.nombre + '" placeholder="Nombre"></div>';
-       html += '  <div><input id="c_apellido" type="text" class="pill" style="background:#fff; border:1px solid #dfe9e5; padding:8px; width:100%; font-size:0.9rem;" value="' + c.apellido + '" placeholder="Apellido"></div>';
+       // Fila 2: Inputs Nombre y Apellido más pequeños
+       html += '<div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-bottom:6px;">';
+       html += '  <input id="c_nombre" type="text" style="background:#fff; border:1px solid #dfe9e5; padding:6px 8px; border-radius:8px; width:100%; font-size:0.85rem; outline:none;" value="' + c.nombre + '" placeholder="Nombre">';
+       html += '  <input id="c_apellido" type="text" style="background:#fff; border:1px solid #dfe9e5; padding:6px 8px; border-radius:8px; width:100%; font-size:0.85rem; outline:none;" value="' + c.apellido + '" placeholder="Apellido">';
        html += '</div>';
        
-       html += '<div style="display:flex; gap:8px; margin-bottom:15px;">';
-       html += '  <input id="c_ciudad" type="text" class="pill" style="flex:1; background:#fff; border:1px solid #dfe9e5; padding:8px; width:100%; font-size:0.9rem;" value="' + c.ciudad + '" placeholder="Ciudad">';
-       html += '  <button id="btnGuardarDatos" style="border:none; background:var(--ink); color:#fff; border-radius:10px; cursor:pointer; padding:0 15px; font-size:1.2rem; transition: transform 0.2s;" title="Guardar Cambios">💾</button>';
-       html += '</div>';
-
-       // 3. Barra Financiera Horizontal (Compacta)
-       html += '<div style="display:flex; justify-content:space-between; align-items:center; background:#fff; border:2px dashed #cfe3dc; border-radius:12px; padding:10px 15px;">';
-       html += '  <div><span style="font-size:0.7rem; color:#7ea094; font-weight:700; display:block; text-transform:uppercase;">ABONADO</span><span style="font-size:1.3rem; font-weight:800; color:#244a3e;">$ ' + fmt(totalAbonadoGlobal) + '</span></div>';
-       html += '  <div style="height:30px; width:1px; background:#dfe9e5;"></div>'; // Separador vertical
-       html += '  <div style="text-align:right;"><span style="font-size:0.7rem; color:#e74c3c; font-weight:700; display:block; text-transform:uppercase;">RESTA</span><span style="font-size:1.3rem; font-weight:800; color:#e74c3c;">$ ' + fmt(totalRestanteGlobal) + '</span></div>';
+       // Fila 3: Ciudad y Botón Guardar
+       html += '<div style="display:flex; gap:6px; margin-bottom:10px;">';
+       html += '  <input id="c_ciudad" type="text" style="flex:1; background:#fff; border:1px solid #dfe9e5; padding:6px 8px; border-radius:8px; font-size:0.85rem; outline:none;" value="' + c.ciudad + '" placeholder="Ciudad">';
+       html += '  <button id="btnGuardarDatos" style="border:none; background:var(--ink); color:#fff; border-radius:8px; cursor:pointer; padding:0 12px; font-size:1rem;" title="Guardar">💾</button>';
        html += '</div>';
 
-       // 4. Botón Copiar (Discreto al final)
-       html += '<button id="btnCopiar" style="width:100%; margin-top:10px; background:transparent; border:1px solid #3cb579; color:#3cb579; padding:8px; border-radius:10px; font-weight:600; cursor:pointer; font-size:0.85rem;">📋 Copiar link de boleta</button>';
-       
-       html += '</div>'; // Fin del contenedor
-       
-       document.getElementById('cliente-info-render').innerHTML = html;
+       // Fila 4: Finanzas y Botón Copiar Link EN LA MISMA LÍNEA
+       html += '<div style="display:flex; justify-content:space-between; align-items:center; background:#fff; border:1px solid #cfe3dc; border-radius:8px; padding:6px 8px;">';
+       html += '  <div style="display:flex; gap:10px; align-items:center;">';
+       html += '    <div><span style="font-size:0.6rem; color:#7ea094; display:block; line-height:1;">ABONADO</span><span style="font-size:0.9rem; font-weight:800; color:var(--ink); line-height:1;">$' + fmt(totalAbonadoGlobal) + '</span></div>';
+       html += '    <div style="height:20px; width:1px; background:#dfe9e5;"></div>'; 
+       html += '    <div><span style="font-size:0.6rem; color:#e74c3c; display:block; line-height:1;">RESTA</span><span style="font-size:0.9rem; font-weight:800; color:#e74c3c; line-height:1;">$' + fmt(totalRestanteGlobal) + '</span></div>';
+       html += '  </div>';
+       html += '  <button id="btnCopiar" style="background:transparent; border:1px solid #3cb579; color:#3cb579; padding:4px 8px; border-radius:6px; font-weight:700; cursor:pointer; font-size:0.75rem;">📋 Link</button>';
+       html += '</div>';
+
+       html += '</div>';
        
        document.getElementById('btnGuardarDatos').addEventListener('click', function() {
            var btn = document.getElementById('btnGuardarDatos');
@@ -856,13 +946,13 @@
 
         let html = `
         <div style="overflow-x:auto;">
-        <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.8rem;">
             <thead>
-                <tr style="border-bottom:2px solid var(--ring);">
-                    <th style="text-align:left; padding:8px;">Fecha</th>
-                    <th style="text-align:left; padding:8px;">Valor</th>
-                    <th style="text-align:left; padding:8px;">Ref</th>
-                    <th style="text-align:right; padding:8px;">Acción</th>
+                <tr style="border-bottom:2px solid var(--ring); color: var(--muted);">
+                    <th style="text-align:left; padding:4px 2px;">Fecha</th>
+                    <th style="text-align:left; padding:4px 2px;">Valor</th>
+                    <th style="text-align:left; padding:4px 2px;">Ref</th>
+                    <th style="text-align:right; padding:4px 2px;">Acción</th>
                 </tr>
             </thead>
             <tbody>`;
@@ -872,11 +962,11 @@
             
             html += `
                 <tr style="border-bottom:1px solid var(--ring);">
-                    <td style="padding:8px;">${a.fecha}<br><span style="font-size:0.75rem; color:gray;">${a.hora}</span></td>
-                    <td style="padding:8px; font-weight:700; color:var(--ink-2);">${valFmt}</td>
-                    <td style="padding:8px;">${a.referencia || '-'}</td>
-                    <td style="padding:8px; text-align:right;">
-                        <button class="chip-del" style="width:auto; height:auto; padding:4px 10px; border-radius:8px; display:inline-block;" 
+                    <td style="padding:6px 2px; line-height:1.2;">${a.fecha}<br><span style="font-size:0.65rem; color:gray;">${a.hora}</span></td>
+                    <td style="padding:6px 2px; font-weight:700; color:var(--ink-2);">${valFmt}</td>
+                    <td style="padding:6px 2px; font-size:0.75rem; word-break: break-all;">${a.referencia || '-'}</td>
+                    <td style="padding:6px 2px; text-align:right;">
+                        <button class="chip-del" style="width:24px; height:24px; padding:0; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; font-size:0.85rem;" 
                             onclick="confirmarEliminarAbono(${a.row}, '${a.sheet}', '${a.numero}', this)">
                             🗑️
                         </button>
