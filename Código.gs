@@ -84,9 +84,19 @@ function _verificarInventarioFINAL(n){
   if (!sh) return false;
   const last = sh.getLastRow();
   if (last < 2) return false;
-  const inventario = sh.getRange(2, 1, last - 1, 1).getDisplayValues().flat();
+  
+  // Ahora traemos las primeras 2 columnas (Numero y Estado)
+  const inventario = sh.getRange(2, 1, last - 1, 2).getDisplayValues();
   for (let i = 0; i < inventario.length; i++) {
-    if (_pad4(inventario[i]) === buscado) return true;
+    if (_pad4(inventario[i][0]) === buscado) {
+      // Solo está disponible si la columna de estado NO dice "VENDIDO"
+      const estado = String(inventario[i][1]).trim().toUpperCase();
+      if (estado !== "VENDIDO") {
+        return true;
+      } else {
+        return false; // Está en el inventario, pero ya se vendió
+      }
+    }
   }
   return false;
 }

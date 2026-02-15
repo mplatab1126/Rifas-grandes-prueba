@@ -433,6 +433,10 @@
       google.script.run
         .withSuccessHandler(res=>{
            feedback.textContent = "";
+           if (!res) {
+               showModal('Error Oculto', 'El servidor bloqueó la respuesta. Revisa si en la hoja V1 hay celdas con errores como #N/A o #REF! en la fila del 5208.');
+               return;
+           }
            if(res.tipo === 'ERROR_SERVIDOR'){
               showModal('Error del Servidor', res.mensaje);
               return;
@@ -729,7 +733,7 @@
        html += '</div>';
 
        // 4. Botón Copiar (Discreto al final)
-       html += '<button id="btnCopiar" style="width:100%; margin-top:10px; background:transparent; border:1px solid #3cb579; color:#3cb579; padding:8px; border-radius:10px; font-weight:600; cursor:pointer; font-size:0.85rem;">📋 Copiar links de pago</button>';
+       html += '<button id="btnCopiar" style="width:100%; margin-top:10px; background:transparent; border:1px solid #3cb579; color:#3cb579; padding:8px; border-radius:10px; font-weight:600; cursor:pointer; font-size:0.85rem;">📋 Copiar link de boleta</button>';
        
        html += '</div>'; // Fin del contenedor
        
