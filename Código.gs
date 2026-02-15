@@ -1,5 +1,5 @@
 const SPREADSHEET_ID = "155-Fol3dyTtXGK1WMy14Q1a4BdRPpG4pvM19PuSVyvE";
-const ID_CENTRAL_TRANSFERENCIAS = "1DtwLYhRE_3PN8Sl-5We6Qr9BBF54elBhGMQoGYwG28U";
+const ID_CENTRAL_TRANSFERENCIAS = "1eZ5Q2OM7F_k8ZgaWDUYLX54k3HsyVLdpK5kbx5eZa7g";
 const BASE_URL = "https://script.google.com/macros/s/AKfycbxzRHo_XcLE-FRWQOSmq2wiM1c4WAYgEBf2vGFhYrSXtpcM7jinaoO_BxtlJpan48P5EQ/exec";
 const TICKET_PRICE = 150000;
 const MAX_ROWS_PER_SHARD = 3333;
@@ -899,49 +899,78 @@ function asignarTransferenciaPorFila(payload){
 }
 
 function buscarTransferenciasExactas(payload){
-  try{
-    const refNeedle = _normAlnum(payload?.referencia || "");
-    const fechaISO  = String(payload?.fechaISO || "").trim();
-    const hora12    = _normHora12(payload?.hora12 || "");
+  try {
+    // 1. Recibimos los posibles filtros que mandará el asesor desde la pantalla
+    const refNeedle = _normAlnum(payload?.referencia || ""); // El celular (Nequi)
+    const fechaFiltro = String(payload?.fecha || "").trim(); // Fecha en formato DD/MM/AAAA
+    const montoFiltro = Number(payload?.monto) || 0;         // El valor del pago
+    
     const sheets = _getAllTransferSheets();
-    if (sheets.length === 0) throw new Error('No hay hojas de TRANSFERENCIAS.');
-    const out  = [];
-    for (const sh of sheets){
+    if (sheets.length === 0) throw new Error('No hay hojas de TRANSFERENCIAS en la Central.');
+    
+    const out = [];
+    
+    // 2. Recorremos las hojas de la Central
+    for (const sh of sheets) {
       const last = sh.getLastRow();
       if (last < 2) continue;
-      const vals = sh.getRange(2,1,last-1,7).getDisplayValues();
-      for (let i=0; i<vals.length; i++){
+      
+      // En tu nueva central: B=Plataforma(1), C=Monto(2), D=Referencia(3), E=Fecha(4), G=Estado(6)
+      const vals = sh.getRange(2, 1, last - 1, 7).getDisplayValues();
+      
+      for (let i = 0; i < vals.length; i++) {
         const row = i + 2;
         const plataforma = vals[i][1];
-        const montoStr   = vals[i][2];
-        const referencia = vals[i][3];
-        const fechaDisp  = vals[i][4];
-        const horaDisp   = vals[i][5];
-        const status     = vals[i][6];
-        if (refNeedle) {
-          if (_normAlnum(referencia) === refNeedle){
-            out.push({
-              sheet: sh.getName(), row, plataforma: plataforma || "No identificado",
-              monto: Number(String(montoStr||"").replace(/[^\d]/g,"")) || 0,
-              referencia, fecha: fechaDisp, hora: horaDisp, status: status || ""
-            });
-          }
-          continue;
+        const montoCelda = Number(String(vals[i][2] || "").replace(/[^\d]/g, "")) || 0;
+        const referencia = String(vals[i][3] || "");
+        const fechaCelda = String(vals[i][4] || "").trim();
+        const status     = String(vals[i][6] || "").trim();
+        
+        let coincide = true;
+
+        // --- APLICAMOS LOS FILTROS ---
+        
+        // A. Filtro por Referencia (Celular): Si escribiste algo, debe coincidir
+        if (refNeedle !== "" && _normAlnum(referencia) !== refNeedle) {
+          coincide = false;
         }
-        const iso = _fechaDispToISO(fechaDisp);
-        const h12 = _normHora12(horaDisp);
-        if (iso === fechaISO && h12 === hora12){
+        
+        // B. Filtro por Fecha: Si elegiste una fecha, debe coincidir
+        // (Nota: asume que la fecha en la central y la que mandas tienen el mismo formato ej. DD/MM/AAAA)
+        if (fechaFiltro !== "" && fechaCelda !== fechaFiltro) {
+          coincide = false;
+        }
+        
+        // C. Filtro por Monto: Si escribiste un monto, debe coincidir
+        if (montoFiltro > 0 && montoCelda !== montoFiltro) {
+          coincide = false;
+        }
+        
+        // Si no mandaste NINGÚN filtro, no mostramos toda la base de datos
+        if (refNeedle === "" && fechaFiltro === "" && montoFiltro === 0) {
+          coincide = false;
+        }
+        
+        // 3. Si la fila pasó todos los filtros que enviaste, la agregamos a los resultados
+        if (coincide) {
           out.push({
-            sheet: sh.getName(), row, plataforma: plataforma || "No identificado",
-            monto: Number(String(montoStr||"").replace(/[^\d]/g,"")) || 0,
-            referencia, fecha: fechaDisp, hora: horaDisp, status: status || ""
+            sheet: sh.getName(), 
+            row: row, 
+            plataforma: plataforma || "No identificado",
+            monto: montoCelda,
+            referencia: referencia, 
+            fecha: fechaCelda, 
+            hora: "", // Ya no usamos hora con Bancolombia
+            status: status
           });
         }
       }
     }
-    return { status:"ok", lista: out };
-  }catch(err){
-    return { status:"error", mensaje: String(err) };
+    
+    return { status: "ok", lista: out };
+    
+  } catch (err) {
+    return { status: "error", mensaje: String(err) };
   }
 }
 
